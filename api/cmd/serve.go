@@ -30,17 +30,17 @@ func serveAPI(ctx context.Context, api *api.API) {
 
 	if api.Config.Cors {
 		cors := handlers.CORS(
-		handlers.AllowedOrigins(api.Config.AllowedHosts),
-		handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "OPTIONS"}),
-		handlers.AllowedHeaders([]string{"Content-Type", "Authorization"}),
-	)
+			handlers.AllowedOrigins(api.Config.AllowedHosts),
+			handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "OPTIONS"}),
+			handlers.AllowedHeaders([]string{"Content-Type", "Authorization"}),
+		)
 
-	handler = cors(router)
-	
-} else {
-	handler = router
-}
-server = &http.Server{
+		handler = cors(router)
+
+	} else {
+		handler = router
+	}
+	server = &http.Server{
 		Addr:        fmt.Sprintf(":%d", api.Config.Port),
 		Handler:     handler,
 		ReadTimeout: 2 * time.Minute,

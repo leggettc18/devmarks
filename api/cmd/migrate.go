@@ -65,7 +65,9 @@ var migrateCmd = &cobra.Command{
 		if version == -1 {
 			if args[0] == "up" {
 				if err := m.Up(); err != nil {
-					logrus.Fatal(err)
+					if err != migrate.ErrNoChange {
+						logrus.Fatal(err)
+					}
 				}
 				logrus.Info("successfully applied migrations")
 			}

@@ -12,11 +12,11 @@ import {
 } from "@apollo/client/core";
 import "@/assets/tailwind.css";
 
-const graphqlUri: string = process.env.GRAPHQL_URI
-  ? process.env.GRAPHQL_URI
+const graphqlUri: string = process.env.VUE_APP_GRAPHQL_URI
+  ? process.env.VUE_APP_GRAPHQL_URI
   : "localhost";
-const graphqlPort: string = process.env.GRAPHQL_PORT
-  ? process.env.GRAPHQL_PORT
+const graphqlPort: string = process.env.VUE_APP_GRAPHQL_PORT
+  ? process.env.VUE_APP_GRAPHQL_PORT
   : "9092";
 const authMiddleware = new ApolloLink((operation, forward) => {
   const token = localStorage.getItem("user-token");
@@ -29,7 +29,7 @@ const authMiddleware = new ApolloLink((operation, forward) => {
 });
 
 const httpLink = createHttpLink({
-  uri: `http://${graphqlUri}:${graphqlPort}/graphql`,
+  uri: `https://${graphqlUri}:${graphqlPort}/graphql`,
 });
 
 const cache = new InMemoryCache();
