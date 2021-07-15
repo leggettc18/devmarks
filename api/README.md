@@ -2,6 +2,8 @@
 
 ![Devmarks Logo](https://raw.githubusercontent.com/leggettc18/devmarks/web/main/src/assets/logo.svg)
 
+This is the README for the backend API of Devmarks.
+
 Devmarks will eventually be a Web App to allow developers to organize
 Bookmarks amongst their team, organizing them with Folders, Organizations,
 Tags, and Colors. Currently it only does Bookmarks and Users, but implementing
