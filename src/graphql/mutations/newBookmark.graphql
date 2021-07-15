@@ -1,0 +1,8 @@
+mutation newBookmark($name: String!, $url: String!, $color: String) {
+    newBookmark(name: $name, url: $url, color: $color) {
+            id
+            name
+            url
+            color
+    }
+}

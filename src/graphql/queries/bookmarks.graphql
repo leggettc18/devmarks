@@ -1,0 +1,8 @@
+query getBookmarks {
+    bookmarks {
+        id
+        name
+        url
+        color
+    }
+}
