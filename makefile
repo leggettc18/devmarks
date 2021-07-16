@@ -29,13 +29,13 @@ ifeq (,$(findstring postgres-net,$(NETWORKS)))
 endif
 
 postgres-volume:
-ifeq (,$(findstring postgres-db,$(VOLUMES)))
+ifeq (,$(findstring postgres-devmarks-db,$(VOLUMES)))
 	@echo [ creating postgres volume... ]
-	docker volume create postgres-db
+	docker volume create postgres-devmarks-db
 	@echo $(SUCCESS)
 endif
 
-api: traefik-network postgres-network postgres-volume
+api: traefik-network postgres-network postgres-devmarks-volume
 	@echo [ starting api... ]
 	docker-compose up traefik api db redis
 
