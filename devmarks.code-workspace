@@ -10,10 +10,4 @@
 			"path": "web"
 		}
 	],
-	"settings": {
-		"files.exclude": {
-			"web": true,
-			"api": true,
-		}
-	}
 }
