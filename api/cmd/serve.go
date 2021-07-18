@@ -31,7 +31,7 @@ func serveAPI(ctx context.Context, api *api.API) {
 	if api.Config.Cors {
 		cors := handlers.CORS(
 			handlers.AllowedOrigins(api.Config.AllowedHosts),
-			handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "OPTIONS"}),
+			handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "OPTIONS", "PATCH", "DELETE"}),
 			handlers.AllowedHeaders([]string{"Content-Type", "Authorization"}),
 		)
 
