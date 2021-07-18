@@ -18,8 +18,6 @@ import (
 	"leggett.dev/devmarks/api/app"
 )
 
-type query struct{}
-
 func serveAPI(ctx context.Context, api *api.API) {
 	router := mux.NewRouter()
 	api.Init(router.PathPrefix("/api").Subrouter())

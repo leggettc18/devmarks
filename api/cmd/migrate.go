@@ -29,7 +29,7 @@ var migrateCmd = &cobra.Command{
 	Use: "migrate",
 	Args: func(cmd *cobra.Command, args []string) error {
 		if len(args) > 1 {
-			return errors.New("Too many arguments")
+			return errors.New("too many arguments")
 		}
 		if len(args) != 0 {
 			if isValidCommand(args[0]) {
@@ -43,7 +43,7 @@ var migrateCmd = &cobra.Command{
 		version, _ := cmd.Flags().GetInt("version")
 
 		if version != -1 && len(args) > 0 {
-			return errors.New("Cannot use --version flag and a command at the same time")
+			return errors.New("cannot use --version flag and a command at the same time")
 		}
 
 		a, err := app.New()
