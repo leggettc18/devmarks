@@ -192,7 +192,7 @@ func (a *API) handler(f func(*app.Context, http.ResponseWriter, *http.Request) e
 
 			ctx = ctx.WithUser(user)
 		} */
-		if !(r.URL.Path == "/api/users/" || r.URL.Path == "/api/auth/token/") {
+		if !(r.URL.Path == "/users/" || r.URL.Path == "/auth/token/") {
 			tokenStrategy := a.App.Authenticator.Strategy(token.CachedStrategyKey)
 			userInfo, err := tokenStrategy.Authenticate(r.Context(), r)
 			if err != nil {
