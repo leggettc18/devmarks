@@ -175,23 +175,6 @@ func (a *API) handler(f func(*app.Context, http.ResponseWriter, *http.Request) e
 		ctx := a.App.NewContext().WithRemoteAddress(a.IPAddressForRequest(r))
 		ctx = ctx.WithLogger(ctx.Logger.WithField("request_id", base64.RawURLEncoding.EncodeToString(model.NewID())))
 
-		/* if username, password, ok := r.BasicAuth(); ok {
-			user, err := a.App.GetUserByEmail(username)
-
-			if user == nil || err != nil {
-				if err != nil {
-					ctx.Logger.WithError(err).Error("unable to get user")
-				}
-				http.Error(w, "invalid credentials", http.StatusForbidden)
-				return
-			}
-
-			if ok := user.CheckPassword(password); !ok {
-				http.Error(w, "invalid credentials", http.StatusForbidden)
-			}
-
-			ctx = ctx.WithUser(user)
-		} */
 		if !(r.URL.Path == "/users/" || r.URL.Path == "/auth/token/") {
 			tokenStrategy := a.App.Authenticator.Strategy(token.CachedStrategyKey)
 			userInfo, err := tokenStrategy.Authenticate(r.Context(), r)
