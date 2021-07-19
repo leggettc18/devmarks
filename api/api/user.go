@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -10,7 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/shaj13/go-guardian/auth"
-	"leggett.dev/devmarks/api/app"
+	myAuth "leggett.dev/devmarks/api/auth"
 	"leggett.dev/devmarks/api/model"
 )
 
@@ -27,7 +28,7 @@ type UserResponse struct {
 }
 
 // CreateUser creates a new user based on the json data provided in the HTTP Request
-func (a *API) CreateUser(ctx *app.Context, w http.ResponseWriter, r *http.Request) error {
+func (a *API) CreateUser(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	var input UserInput
 
 	defer r.Body.Close()
@@ -42,7 +43,7 @@ func (a *API) CreateUser(ctx *app.Context, w http.ResponseWriter, r *http.Reques
 
 	user := &model.User{Email: input.Email}
 
-	if err := ctx.CreateUser(user, input.Password); err != nil {
+	if err := a.App.CreateUser(user, input.Password); err != nil {
 		return err
 	}
 
@@ -56,8 +57,8 @@ func (a *API) CreateUser(ctx *app.Context, w http.ResponseWriter, r *http.Reques
 }
 
 // GetUser Retrieves the authenticated user from the database
-func (a *API) GetUser(ctx *app.Context, w http.ResponseWriter, r *http.Request) error {
-	user := ctx.User
+func (a *API) GetUser(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	user := myAuth.GetUser(ctx)
 
 	data, err := json.Marshal(user)
 	if err != nil {
@@ -84,7 +85,7 @@ func (a *API) validateLogin(r *http.Request, userName, password string) (auth.In
 	return auth.NewDefaultUser(user.Email, strconv.Itoa(int(user.ID)), nil, nil), nil
 }
 
-func (a *API) createToken(ctx *app.Context, w http.ResponseWriter, r *http.Request) error {
+func (a *API) createToken(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	var input UserInput
 
 	defer r.Body.Close()

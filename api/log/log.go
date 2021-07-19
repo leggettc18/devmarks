@@ -2,11 +2,9 @@ package log
 
 import (
 	"context"
-	"encoding/base64"
 	"net/http"
 
 	"github.com/sirupsen/logrus"
-	"leggett.dev/devmarks/api/model"
 )
 
 type Logger interface {
@@ -25,14 +23,14 @@ func GetLogger(ctx context.Context) *logrus.Logger{
 	return logger
 }
 
-func setLoggerInCtx(ctx *context.Context, logger logrus.FieldLogger) {
+func setLoggerInCtx(ctx *context.Context, logger *logrus.Logger) {
 	*ctx = context.WithValue(*ctx, loggerKey, logger)
 }
 
 func LoggerMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		logger := logrus.WithField("request_id", base64.RawURLEncoding.EncodeToString(model.NewID()))
+		logger := logrus.New()
 		setLoggerInCtx(&ctx, logger)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})

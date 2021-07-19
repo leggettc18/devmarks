@@ -15,8 +15,8 @@ func (a *App) GetUserByEmail(email string) (*model.User, error) {
 
 // CreateUser performs the business logic necessary to create and validate a new
 // User, returning an error if validation fails or a password cannot be set.
-func (ctx *Context) CreateUser(user *model.User, password string) error {
-	if err := ctx.validateUser(user, password); err != nil {
+func (a *App) CreateUser(user *model.User, password string) error {
+	if err := a.validateUser(user, password); err != nil {
 		return err
 	}
 
@@ -24,10 +24,10 @@ func (ctx *Context) CreateUser(user *model.User, password string) error {
 		return errors.Wrap(err, "unable to set user password")
 	}
 
-	return ctx.Database.CreateUser(user)
+	return a.Database.CreateUser(user)
 }
 
-func (ctx *Context) validateUser(user *model.User, password string) *ValidationError {
+func (a *App) validateUser(user *model.User, password string) *ValidationError {
 	// naive email validation
 	if !strings.Contains(user.Email, "@") {
 		return &ValidationError{"invalid email"}

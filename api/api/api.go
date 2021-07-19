@@ -165,8 +165,16 @@ func (a *API) InitGraphql(r *mux.Router) {
 	r.Handle("/graphiql", graphiqlHandler).Methods("GET")
 }
 
-func (a *API) handler(f func(*app.Context, http.ResponseWriter, *http.Request) error) http.Handler {
+type contextKey struct { key string }
+var addressKey = &contextKey{ "remote_address" }
+
+func setRemoteAddressInCtx(ctx context.Context, address string) context.Context {
+	return context.WithValue(ctx, addressKey, address)
+}
+
+func (a *API) handler(f func(context.Context, http.ResponseWriter, *http.Request) error) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
 		r.Body = http.MaxBytesReader(w, r.Body, 100*1024*1024)
 
 		beginTime := time.Now()
@@ -177,7 +185,9 @@ func (a *API) handler(f func(*app.Context, http.ResponseWriter, *http.Request) e
 			Hijacker:       hijacker,
 		}
 
-		ctx := a.App.NewContext().WithRemoteAddress(a.IPAddressForRequest(r))
+		address := a.IPAddressForRequest(r)
+
+		ctx = setRemoteAddressInCtx(ctx, address)
 
 		defer func() {
 			statusCode := w.(*statusCodeRecorder).StatusCode
@@ -186,22 +196,24 @@ func (a *API) handler(f func(*app.Context, http.ResponseWriter, *http.Request) e
 			}
 			duration := time.Since(beginTime)
 
-			logger := ctx.Logger.WithFields(logrus.Fields{
+			logger := log.GetLogger(ctx).WithFields(logrus.Fields{
 				"duration":    duration,
 				"status_code": statusCode,
-				"remote":      ctx.RemoteAddress,
+				"remote":      address,
 			})
 			logger.Info(r.Method + " " + r.URL.RequestURI())
 		}()
 
 		defer func() {
 			if r := recover(); r != nil {
-				ctx.Logger.Error(fmt.Errorf("%v: %s", r, debug.Stack()))
+				log.GetLogger(ctx).Error(fmt.Errorf("%v: %s", r, debug.Stack()))
 				http.Error(w, "internal server error", http.StatusInternalServerError)
 			}
 		}()
 
 		w.Header().Set("Content-Type", "application/json")
+
+		
 
 		if err := f(ctx, w, r); err != nil {
 			if verr, ok := err.(*app.ValidationError); ok {
@@ -212,7 +224,7 @@ func (a *API) handler(f func(*app.Context, http.ResponseWriter, *http.Request) e
 				}
 
 				if err != nil {
-					ctx.Logger.Error(err)
+					log.GetLogger(ctx).Error(err)
 					http.Error(w, "interval server error", http.StatusInternalServerError)
 				}
 			} else if uerr, ok := err.(*app.UserError); ok {
@@ -223,11 +235,11 @@ func (a *API) handler(f func(*app.Context, http.ResponseWriter, *http.Request) e
 				}
 
 				if err != nil {
-					ctx.Logger.Error(err)
+					log.GetLogger(ctx).Error(err)
 					http.Error(w, "internal server error", http.StatusInternalServerError)
 				}
 			} else {
-				ctx.Logger.Error(err)
+				log.GetLogger(ctx).Error(err)
 				http.Error(w, "internal server error", http.StatusInternalServerError)
 			}
 		}

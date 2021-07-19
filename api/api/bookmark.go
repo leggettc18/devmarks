@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
@@ -13,10 +14,9 @@ import (
 )
 
 // GetBookmarks returns the bookmarks corresponding to the currently authenticated user in json form
-func (a *API) GetBookmarks(ctx *app.Context, w http.ResponseWriter, r *http.Request) error {
-	myCtx := r.Context()
-	user := auth.GetUser(myCtx)
-	bookmarks, err := ctx.Database.GetBookmarksByUserID(user.ID)
+func (a *API) GetBookmarks(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	user := auth.GetUser(ctx)
+	bookmarks, err := a.App.Database.GetBookmarksByUserID(user.ID)
 	if err != nil {
 		return err
 	}
@@ -45,7 +45,7 @@ type CreateBookmarkResponse struct {
 
 // CreateBookmark creates a new bookmark owned by the currently authenticated user based
 // on json from the HTTP Request
-func (a *API) CreateBookmark(ctx *app.Context, w http.ResponseWriter, r *http.Request) error {
+func (a *API) CreateBookmark(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	var input CreateBookmarkInput
 
 	defer r.Body.Close()
@@ -60,7 +60,7 @@ func (a *API) CreateBookmark(ctx *app.Context, w http.ResponseWriter, r *http.Re
 
 	bookmark := &model.Bookmark{Name: input.Name, URL: input.URL, Color: &input.Color}
 
-	if err := ctx.CreateBookmark(bookmark); err != nil {
+	if err := a.App.Database.CreateBookmark(bookmark); err != nil {
 		return err
 	}
 
@@ -75,9 +75,9 @@ func (a *API) CreateBookmark(ctx *app.Context, w http.ResponseWriter, r *http.Re
 
 // GetBookmarkByID writes the json representation of a bookmark to the HTTP Response Header,
 // if the currently authenticated user has access to it.
-func (a *API) GetBookmarkByID(ctx *app.Context, w http.ResponseWriter, r *http.Request) error {
+func (a *API) GetBookmarkByID(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	id := getIDFromRequest(r)
-	bookmark, err := ctx.GetBookmarkByID(id)
+	bookmark, err := a.App.Database.GetBookmarkByID(id)
 	if err != nil {
 		return err
 	}
@@ -100,7 +100,7 @@ type UpdateBookmarkInput struct {
 
 // UpdateBookmarkByID updates the bookmark whose ID is specified in the HTTP request if it is owned
 // by the currently authenticated user.
-func (a *API) UpdateBookmarkByID(ctx *app.Context, w http.ResponseWriter, r *http.Request) error {
+func (a *API) UpdateBookmarkByID(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	id := getIDFromRequest(r)
 
 	var input UpdateBookmarkInput
@@ -115,7 +115,7 @@ func (a *API) UpdateBookmarkByID(ctx *app.Context, w http.ResponseWriter, r *htt
 		return err
 	}
 
-	existingBookmark, err := ctx.GetBookmarkByID(id)
+	existingBookmark, err := a.App.Database.GetBookmarkByID(id)
 	if err != nil || existingBookmark == nil {
 		return err
 	}
@@ -130,7 +130,7 @@ func (a *API) UpdateBookmarkByID(ctx *app.Context, w http.ResponseWriter, r *htt
 		existingBookmark.Color = input.Color
 	}
 
-	err = ctx.UpdateBookmark(existingBookmark)
+	err = a.App.Database.UpdateBookmark(existingBookmark)
 	if err != nil {
 		return err
 	}
@@ -146,9 +146,9 @@ func (a *API) UpdateBookmarkByID(ctx *app.Context, w http.ResponseWriter, r *htt
 
 // DeleteBookmarkByID deletes the bookmark whose ID is specified in the HTTP request if it is
 // owned by the currently authenticated user
-func (a *API) DeleteBookmarkByID(ctx *app.Context, w http.ResponseWriter, r *http.Request) error {
+func (a *API) DeleteBookmarkByID(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	id := getIDFromRequest(r)
-	err := ctx.DeleteBookmarkByID(id)
+	err := a.App.Database.DeleteBookmarkByID(id)
 
 	if err != nil {
 		return err

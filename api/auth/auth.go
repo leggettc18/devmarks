@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"net/http"
@@ -41,7 +42,7 @@ func contains(s string, array []string) bool {
 func (a *authSvc) AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		logger := log.GetLogger(ctx)
+		logger := log.GetLogger(ctx).WithField("request_id", base64.RawURLEncoding.EncodeToString(model.NewID()))
 		if !(contains(r.URL.Path, *a.ExemptPaths)) {
 			tokenStrategy := a.App.Authenticator.Strategy(token.CachedStrategyKey)
 			userInfo, err := tokenStrategy.Authenticate(r.Context(), r)
