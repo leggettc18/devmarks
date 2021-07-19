@@ -76,7 +76,7 @@ func (a *API) Init(r *mux.Router) {
 
 	// user methods
 	r.Handle("/users/", a.handler(a.CreateUser)).Methods("POST")
-	r.Handle("/user/", a.handler(a.GetUser)).Methods("GET")
+	r.Handle("/me/", a.handler(a.GetUser)).Methods("GET")
 
 	// bookmark methods
 	bookmarksRouter := r.PathPrefix("/bookmarks").Subrouter()
