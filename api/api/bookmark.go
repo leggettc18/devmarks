@@ -8,12 +8,15 @@ import (
 
 	"github.com/gorilla/mux"
 	"leggett.dev/devmarks/api/app"
+	"leggett.dev/devmarks/api/auth"
 	"leggett.dev/devmarks/api/model"
 )
 
 // GetBookmarks returns the bookmarks corresponding to the currently authenticated user in json form
 func (a *API) GetBookmarks(ctx *app.Context, w http.ResponseWriter, r *http.Request) error {
-	bookmarks, err := ctx.GetUserBookmarks()
+	myCtx := r.Context()
+	user := auth.GetUser(myCtx)
+	bookmarks, err := ctx.Database.GetBookmarksByUserID(user.ID)
 	if err != nil {
 		return err
 	}

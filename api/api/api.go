@@ -22,7 +22,9 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"leggett.dev/devmarks/api/app"
+	myAuth "leggett.dev/devmarks/api/auth"
 	"leggett.dev/devmarks/api/graphql/resolvers"
+	"leggett.dev/devmarks/api/log"
 	"leggett.dev/devmarks/api/model"
 )
 
@@ -72,6 +74,9 @@ func (a *API) setupGoGuardian() {
 func (a *API) Init(r *mux.Router) {
 	// authentication
 	a.setupGoGuardian()
+	r.Use(log.LoggerMiddleware)
+	authSvc := myAuth.NewAuth(&[]string{"/users/", "/auth/token/"}, *a.App)
+	r.Use(authSvc.AuthMiddleware)
 	r.Handle("/auth/token/", a.handler(a.createToken)).Methods("POST")
 
 	// user methods
@@ -173,28 +178,6 @@ func (a *API) handler(f func(*app.Context, http.ResponseWriter, *http.Request) e
 		}
 
 		ctx := a.App.NewContext().WithRemoteAddress(a.IPAddressForRequest(r))
-		ctx = ctx.WithLogger(ctx.Logger.WithField("request_id", base64.RawURLEncoding.EncodeToString(model.NewID())))
-
-		if !(r.URL.Path == "/users/" || r.URL.Path == "/auth/token/") {
-			tokenStrategy := a.App.Authenticator.Strategy(token.CachedStrategyKey)
-			userInfo, err := tokenStrategy.Authenticate(r.Context(), r)
-			if err != nil {
-				ctx.Logger.WithError(err).Error("unable to get user")
-				http.Error(w, "invalid credentials", http.StatusForbidden)
-				return
-			}
-			user, err := a.App.GetUserByEmail(userInfo.UserName())
-
-			if user == nil || err != nil {
-				if err != nil {
-					ctx.Logger.WithError(err).Error("unable to get user")
-				}
-				http.Error(w, "invalid credentials", http.StatusForbidden)
-				return
-			}
-
-			ctx = ctx.WithUser(user)
-		}
 
 		defer func() {
 			statusCode := w.(*statusCodeRecorder).StatusCode
