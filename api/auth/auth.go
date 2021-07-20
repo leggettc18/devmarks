@@ -2,7 +2,6 @@ package auth
 
 import (
 	"context"
-	"encoding/base64"
 	"errors"
 	"fmt"
 	"net/http"
@@ -19,14 +18,16 @@ type AuthService interface {
 }
 
 type authSvc struct {
+	Logger *log.Logger
 	App app.App
 	ExemptPaths *[]string
 }
 
-func NewAuth(exemptPaths *[]string, app app.App) AuthService{
+func NewAuth(exemptPaths *[]string, app app.App, logger *log.Logger) AuthService{
 	return &authSvc{
 		App: app,
 		ExemptPaths: exemptPaths,
+		Logger: logger,
 	}
 }
 
@@ -42,12 +43,12 @@ func contains(s string, array []string) bool {
 func (a *authSvc) AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		logger := log.GetLogger(ctx).WithField("request_id", base64.RawURLEncoding.EncodeToString(model.NewID()))
 		if !(contains(r.URL.Path, *a.ExemptPaths)) {
 			tokenStrategy := a.App.Authenticator.Strategy(token.CachedStrategyKey)
 			userInfo, err := tokenStrategy.Authenticate(r.Context(), r)
 			if err != nil {
-				if logger != nil {
+				if a.Logger != nil {
+					logger := *a.Logger
 					logger.WithError(err).Error("unable to get user")
 				}
 				http.Error(w, "invalid credentials", http.StatusForbidden)
@@ -57,7 +58,8 @@ func (a *authSvc) AuthMiddleware(next http.Handler) http.Handler {
 
 			if user == nil || err != nil {
 				if err != nil {
-					if logger != nil {
+					if a.Logger != nil {
+						logger := *a.Logger
 						logger.WithError(err).Error("unable to get user")
 					}
 				}

@@ -74,8 +74,9 @@ func (a *API) setupGoGuardian() {
 func (a *API) Init(r *mux.Router) {
 	// authentication
 	a.setupGoGuardian()
-	r.Use(log.LoggerMiddleware)
-	authSvc := myAuth.NewAuth(&[]string{"/users/", "/auth/token/"}, *a.App)
+	logger := log.NewLogger(a.Config.ProxyCount)
+	r.Use(logger.LoggerMiddleware)
+	authSvc := myAuth.NewAuth(&[]string{"/users/", "/auth/token/"}, *a.App, &logger)
 	r.Use(authSvc.AuthMiddleware)
 	r.Handle("/auth/token/", a.handler(a.createToken)).Methods("POST")
 
@@ -129,7 +130,7 @@ func (a *API) InitGraphql(r *mux.Router) {
 		}
 		token := strings.ReplaceAll(r.Header.Get("Authorization"), "Bearer ", "")
 		ctx := context.WithValue(context.Background(), "token", token)
-		ctx = context.WithValue(ctx, "remote_address", a.IPAddressForRequest((r)))
+		//ctx = context.WithValue(ctx, "remote_address", a.IPAddressForRequest((r)))
 		logger := logrus.New()
 		ctx = context.WithValue(ctx, "logger", logger.WithField("request_id", base64.RawURLEncoding.EncodeToString(model.NewID())))
 		wsHandler.ServeHTTP(w, r.WithContext(ctx))
@@ -165,55 +166,19 @@ func (a *API) InitGraphql(r *mux.Router) {
 	r.Handle("/graphiql", graphiqlHandler).Methods("GET")
 }
 
-type contextKey struct { key string }
-var addressKey = &contextKey{ "remote_address" }
+// type contextKey struct { key string }
+// var addressKey = &contextKey{ "remote_address" }
 
-func setRemoteAddressInCtx(ctx context.Context, address string) context.Context {
-	return context.WithValue(ctx, addressKey, address)
-}
+// func setRemoteAddressInCtx(ctx context.Context, address string) context.Context {
+// 	return context.WithValue(ctx, addressKey, address)
+// }
 
 func (a *API) handler(f func(context.Context, http.ResponseWriter, *http.Request) error) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		r.Body = http.MaxBytesReader(w, r.Body, 100*1024*1024)
 
-		beginTime := time.Now()
-
-		hijacker, _ := w.(http.Hijacker)
-		w = &statusCodeRecorder{
-			ResponseWriter: w,
-			Hijacker:       hijacker,
-		}
-
-		address := a.IPAddressForRequest(r)
-
-		ctx = setRemoteAddressInCtx(ctx, address)
-
-		defer func() {
-			statusCode := w.(*statusCodeRecorder).StatusCode
-			if statusCode == 0 {
-				statusCode = 200
-			}
-			duration := time.Since(beginTime)
-
-			logger := log.GetLogger(ctx).WithFields(logrus.Fields{
-				"duration":    duration,
-				"status_code": statusCode,
-				"remote":      address,
-			})
-			logger.Info(r.Method + " " + r.URL.RequestURI())
-		}()
-
-		defer func() {
-			if r := recover(); r != nil {
-				log.GetLogger(ctx).Error(fmt.Errorf("%v: %s", r, debug.Stack()))
-				http.Error(w, "internal server error", http.StatusInternalServerError)
-			}
-		}()
-
 		w.Header().Set("Content-Type", "application/json")
-
-		
 
 		if err := f(ctx, w, r); err != nil {
 			if verr, ok := err.(*app.ValidationError); ok {
@@ -224,7 +189,7 @@ func (a *API) handler(f func(context.Context, http.ResponseWriter, *http.Request
 				}
 
 				if err != nil {
-					log.GetLogger(ctx).Error(err)
+					//log.GetLogger(ctx).Error(err)
 					http.Error(w, "interval server error", http.StatusInternalServerError)
 				}
 			} else if uerr, ok := err.(*app.UserError); ok {
@@ -235,36 +200,36 @@ func (a *API) handler(f func(context.Context, http.ResponseWriter, *http.Request
 				}
 
 				if err != nil {
-					log.GetLogger(ctx).Error(err)
+					//log.GetLogger(ctx).Error(err)
 					http.Error(w, "internal server error", http.StatusInternalServerError)
 				}
 			} else {
-				log.GetLogger(ctx).Error(err)
+				//log.GetLogger(ctx).Error(err)
 				http.Error(w, "internal server error", http.StatusInternalServerError)
 			}
 		}
 	})
 }
 
-// IPAddressForRequest gets the IP address from our HTTP request
-func (a *API) IPAddressForRequest(r *http.Request) string {
-	addr := r.RemoteAddr
-	if a.Config.ProxyCount > 0 {
-		h := r.Header.Get("X-Forwarded-For")
-		if h != "" {
-			clients := strings.Split(h, ",")
-			if a.Config.ProxyCount > len(clients) {
-				addr = clients[0]
-			} else {
-				addr = clients[len(clients)-a.Config.ProxyCount]
-			}
-		}
-	}
-	//TODO: consider refactoring to use regex instead.
-	if (strings.Contains(addr, "[")) { //If addr is ipv6
-		sep_strings := strings.Split(strings.TrimSpace(addr), ":") //split string at the colons
-		sep_strings = sep_strings[:len(sep_strings) -1] //remove the last string (the port number)
-		return strings.Join(sep_strings, ":") //Join the remaining elements back together into one string with the colons in between.
-	} //If addr is ipv4
-	return strings.Split(strings.TrimSpace(addr), ":")[0]
-}
+// // IPAddressForRequest gets the IP address from our HTTP request
+// func (a *API) IPAddressForRequest(r *http.Request) string {
+// 	addr := r.RemoteAddr
+// 	if a.Config.ProxyCount > 0 {
+// 		h := r.Header.Get("X-Forwarded-For")
+// 		if h != "" {
+// 			clients := strings.Split(h, ",")
+// 			if a.Config.ProxyCount > len(clients) {
+// 				addr = clients[0]
+// 			} else {
+// 				addr = clients[len(clients)-a.Config.ProxyCount]
+// 			}
+// 		}
+// 	}
+// 	//TODO: consider refactoring to use regex instead.
+// 	if (strings.Contains(addr, "[")) { //If addr is ipv6
+// 		sep_strings := strings.Split(strings.TrimSpace(addr), ":") //split string at the colons
+// 		sep_strings = sep_strings[:len(sep_strings) -1] //remove the last string (the port number)
+// 		return strings.Join(sep_strings, ":") //Join the remaining elements back together into one string with the colons in between.
+// 	} //If addr is ipv4
+// 	return strings.Split(strings.TrimSpace(addr), ":")[0]
+// }
