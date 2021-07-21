@@ -9,8 +9,11 @@ type Folder struct {
 	Name  string
 	Color string
 
-	Owner         User           `gorm:"association_foreignkey:UserID"`
-	Organizations []Organization `gorm:"many2many:folder_organization;"`
-	Bookmarks     []Bookmark     `gorm:"many2many:bookmark_folder;"`
-	Users         []User         `gorm:"many2many:folder_user;"`
+	ParentID uint    `json:"parent_id"`
+	Parent   *Folder `gorm:"association_foreignkey:ParentID"`
+	OwnerID  uint    `json:"owner_id"`
+	Owner    *User   `gorm:"association_foreignkey:UserID"`
+	//Organizations []Organization `gorm:"many2many:folder_organization;"`
+	Bookmarks []Bookmark `gorm:"many2many:bookmark_folder;"`
+	Users     []User     `gorm:"many2many:folder_user;"`
 }
