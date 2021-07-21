@@ -97,11 +97,11 @@ func (a *API) Init(r *mux.Router) {
 
 	// bookmark methods
 	bookmarksRouter := r.PathPrefix("/bookmarks").Subrouter()
-	bookmarksRouter.Handle("/", a.handler(a.GetBookmarks)).Methods("GET")
-	bookmarksRouter.Handle("/", a.handler(a.CreateBookmark)).Methods("POST")
-	bookmarksRouter.Handle("/{id:[0-9]+}/", a.handler(a.GetBookmarkByID)).Methods("GET")
-	bookmarksRouter.Handle("/{id:[0-9]+}/", a.handler(a.UpdateBookmarkByID)).Methods("PATCH")
-	bookmarksRouter.Handle("/{id:[0-9]+}/", a.handler(a.DeleteBookmarkByID)).Methods("DELETE")
+	bookmarksRouter.HandleFunc("/", a.GetBookmarks).Methods("GET")
+	bookmarksRouter.HandleFunc("/", a.CreateBookmark).Methods("POST")
+	bookmarksRouter.HandleFunc("/{id:[0-9]+}/", a.GetBookmarkByID).Methods("GET")
+	bookmarksRouter.HandleFunc("/{id:[0-9]+}/", a.UpdateBookmarkByID).Methods("PATCH")
+	bookmarksRouter.HandleFunc("/{id:[0-9]+}/", a.DeleteBookmarkByID).Methods("DELETE")
 }
 
 func parseSchema(path string, resolver interface{}) *graphql.Schema {
@@ -210,6 +210,23 @@ func (a *API) handler(f func(context.Context, http.ResponseWriter, *http.Request
 			}
 		}
 	})
+}
+
+func respondWithError(w http.ResponseWriter, code int, message string) {
+    respondWithJSON(w, code, map[string]string{"error": message})
+}
+
+func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) error{
+    response, err := json.Marshal(payload)
+
+	if err != nil {
+		return err
+	}
+
+    w.Header().Set("Content-Type", "application/json")
+    w.WriteHeader(code)
+    w.Write(response)
+	return nil
 }
 
 // // IPAddressForRequest gets the IP address from our HTTP request

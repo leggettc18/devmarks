@@ -1,33 +1,35 @@
 package api
 
 import (
-	"context"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
 	"strconv"
 
 	"github.com/gorilla/mux"
-	"leggett.dev/devmarks/api/app"
 	"leggett.dev/devmarks/api/auth"
 	"leggett.dev/devmarks/api/model"
 )
 
 // GetBookmarks returns the bookmarks corresponding to the currently authenticated user in json form
-func (a *API) GetBookmarks(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+func (a *API) GetBookmarks(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	user := auth.GetUser(ctx)
+	if user == nil {
+		respondWithError(w, http.StatusUnauthorized, "no user signed in")
+		return
+	}
 	bookmarks, err := a.App.Database.GetBookmarksByUserID(user.ID)
 	if err != nil {
-		return err
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
 	}
 
-	data, err := json.Marshal(bookmarks)
+	err = respondWithJSON(w, http.StatusOK, bookmarks)
 	if err != nil {
-		return err
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
 	}
-
-	_, err = w.Write(data)
-	return err
 }
 
 // CreateBookmarkInput represents the input to the CreateBookmark function
@@ -45,50 +47,75 @@ type CreateBookmarkResponse struct {
 
 // CreateBookmark creates a new bookmark owned by the currently authenticated user based
 // on json from the HTTP Request
-func (a *API) CreateBookmark(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+func (a *API) CreateBookmark(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	user := auth.GetUser(ctx)
+	if user == nil {
+		respondWithError(w, http.StatusUnauthorized, "no user signed in")
+		return
+	}
 	var input CreateBookmarkInput
 
 	defer r.Body.Close()
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		return err
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
 	}
 
 	if err := json.Unmarshal(body, &input); err != nil {
-		return err
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
 	}
 
-	bookmark := &model.Bookmark{Name: input.Name, URL: input.URL, Color: &input.Color}
+	if input.URL == "" {
+		respondWithError(w, http.StatusBadRequest, "url is required")
+		return
+	}
+	if input.Name == "" {
+		respondWithError(w, http.StatusBadRequest, "name is required")
+		return
+	}
+	bookmark := &model.Bookmark{Name: input.Name, URL: input.URL, Color: &input.Color, OwnerID: user.ID}
 
 	if err := a.App.Database.CreateBookmark(bookmark); err != nil {
-		return err
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
 	}
 
-	data, err := json.Marshal(&CreateBookmarkResponse{ID: bookmark.ID})
+	err = respondWithJSON(w, http.StatusOK, &CreateBookmarkResponse{ID: bookmark.ID})
 	if err != nil {
-		return err
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
 	}
-
-	_, err = w.Write(data)
-	return err
 }
 
 // GetBookmarkByID writes the json representation of a bookmark to the HTTP Response Header,
 // if the currently authenticated user has access to it.
-func (a *API) GetBookmarkByID(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+func (a *API) GetBookmarkByID(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	user := auth.GetUser(ctx)
+	if user == nil {
+		respondWithError(w, http.StatusUnauthorized, "no user signed in")
+		return
+	}
 	id := getIDFromRequest(r)
 	bookmark, err := a.App.Database.GetBookmarkByID(id)
 	if err != nil {
-		return err
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
 	}
 
-	data, err := json.Marshal(bookmark)
+	if user.ID != bookmark.OwnerID {
+		respondWithError(w, http.StatusForbidden, "permission denied")
+		return
+	}
+
+	err = respondWithJSON(w, http.StatusOK, bookmark)
 	if err != nil {
-		return err
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
 	}
-
-	_, err = w.Write(data)
-	return err
 }
 
 // UpdateBookmarkInput represents the input to the UpdateBookmark function
@@ -100,7 +127,13 @@ type UpdateBookmarkInput struct {
 
 // UpdateBookmarkByID updates the bookmark whose ID is specified in the HTTP request if it is owned
 // by the currently authenticated user.
-func (a *API) UpdateBookmarkByID(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+func (a *API) UpdateBookmarkByID(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	user := auth.GetUser(ctx)
+	if user != nil {
+		respondWithError(w, http.StatusUnauthorized, "no user signed in")
+		return
+	}
 	id := getIDFromRequest(r)
 
 	var input UpdateBookmarkInput
@@ -108,16 +141,24 @@ func (a *API) UpdateBookmarkByID(ctx context.Context, w http.ResponseWriter, r *
 	defer r.Body.Close()
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		return err
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
 	}
 
 	if err := json.Unmarshal(body, &input); err != nil {
-		return err
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
 	}
 
 	existingBookmark, err := a.App.Database.GetBookmarkByID(id)
 	if err != nil || existingBookmark == nil {
-		return err
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	if user.ID != existingBookmark.OwnerID {
+		respondWithError(w, http.StatusForbidden, "permission denied")
+		return
 	}
 
 	if input.Name != nil {
@@ -132,29 +173,39 @@ func (a *API) UpdateBookmarkByID(ctx context.Context, w http.ResponseWriter, r *
 
 	err = a.App.Database.UpdateBookmark(existingBookmark)
 	if err != nil {
-		return err
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
 	}
 
-	data, err := json.Marshal(existingBookmark)
+	err = respondWithJSON(w, http.StatusOK, existingBookmark)
 	if err != nil {
-		return err
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
 	}
-
-	_, err = w.Write(data)
-	return err
 }
 
 // DeleteBookmarkByID deletes the bookmark whose ID is specified in the HTTP request if it is
 // owned by the currently authenticated user
-func (a *API) DeleteBookmarkByID(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+func (a *API) DeleteBookmarkByID(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	user := auth.GetUser(ctx)
+	if user == nil {
+		respondWithError(w, http.StatusUnauthorized, "no user signed in")
+		return
+	}
 	id := getIDFromRequest(r)
 	err := a.App.Database.DeleteBookmarkByID(id)
 
 	if err != nil {
-		return err
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
 	}
 
-	return &app.UserError{StatusCode: http.StatusOK, Message: "removed"}
+	err = respondWithJSON(w, http.StatusNoContent, "")
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
 }
 
 func getIDFromRequest(r *http.Request) uint {
