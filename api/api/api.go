@@ -75,7 +75,6 @@ func (a *API) setupGoGuardian() {
 func apiMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		r.Body = http.MaxBytesReader(w, r.Body, 100*1024*1024)
-		w.Header().Set("Content-Type", "application/json")
 		next.ServeHTTP(w, r)
 	})
 }
@@ -89,11 +88,11 @@ func (a *API) Init(r *mux.Router) {
 	authSvc := myAuth.NewAuth(&[]string{"/users/", "/auth/token/"}, *a.App, &logger)
 	r.Use(authSvc.AuthMiddleware)
 	r.Use(apiMiddleware)
-	r.Handle("/auth/token/", a.handler(a.createToken)).Methods("POST")
+	r.HandleFunc("/auth/token/", a.createToken).Methods("POST")
 
 	// user methods
-	r.Handle("/users/", a.handler(a.CreateUser)).Methods("POST")
-	r.Handle("/me/", a.handler(a.GetUser)).Methods("GET")
+	r.HandleFunc("/users/", a.CreateUser).Methods("POST")
+	r.HandleFunc("/me/", a.GetUser).Methods("GET")
 
 	// bookmark methods
 	bookmarksRouter := r.PathPrefix("/bookmarks").Subrouter()
@@ -177,40 +176,40 @@ func (a *API) InitGraphql(r *mux.Router) {
 	r.Handle("/graphiql", graphiqlHandler).Methods("GET")
 }
 
-func (a *API) handler(f func(context.Context, http.ResponseWriter, *http.Request) error) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
+// func (a *API) handler(f func(context.Context, http.ResponseWriter, *http.Request) error) http.Handler {
+// 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+// 		ctx := r.Context()
 
-		if err := f(ctx, w, r); err != nil {
-			if verr, ok := err.(*app.ValidationError); ok {
-				data, err := json.Marshal(verr)
-				if err == nil {
-					w.WriteHeader(http.StatusBadRequest)
-					_, err = w.Write(data)
-				}
+// 		if err := f(ctx, w, r); err != nil {
+// 			if verr, ok := err.(*app.ValidationError); ok {
+// 				data, err := json.Marshal(verr)
+// 				if err == nil {
+// 					w.WriteHeader(http.StatusBadRequest)
+// 					_, err = w.Write(data)
+// 				}
 
-				if err != nil {
-					//log.GetLogger(ctx).Error(err)
-					http.Error(w, "interval server error", http.StatusInternalServerError)
-				}
-			} else if uerr, ok := err.(*app.UserError); ok {
-				data, err := json.Marshal(uerr)
-				if err == nil {
-					w.WriteHeader(uerr.StatusCode)
-					_, err = w.Write(data)
-				}
+// 				if err != nil {
+// 					//log.GetLogger(ctx).Error(err)
+// 					http.Error(w, "interval server error", http.StatusInternalServerError)
+// 				}
+// 			} else if uerr, ok := err.(*app.UserError); ok {
+// 				data, err := json.Marshal(uerr)
+// 				if err == nil {
+// 					w.WriteHeader(uerr.StatusCode)
+// 					_, err = w.Write(data)
+// 				}
 
-				if err != nil {
-					//log.GetLogger(ctx).Error(err)
-					http.Error(w, "internal server error", http.StatusInternalServerError)
-				}
-			} else {
-				//log.GetLogger(ctx).Error(err)
-				http.Error(w, "internal server error", http.StatusInternalServerError)
-			}
-		}
-	})
-}
+// 				if err != nil {
+// 					//log.GetLogger(ctx).Error(err)
+// 					http.Error(w, "internal server error", http.StatusInternalServerError)
+// 				}
+// 			} else {
+// 				//log.GetLogger(ctx).Error(err)
+// 				http.Error(w, "internal server error", http.StatusInternalServerError)
+// 			}
+// 		}
+// 	})
+// }
 
 func respondWithError(w http.ResponseWriter, code int, message string) {
     respondWithJSON(w, code, map[string]string{"error": message})

@@ -1,7 +1,6 @@
 package api
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -11,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/shaj13/go-guardian/auth"
+	"leggett.dev/devmarks/api/app"
 	myAuth "leggett.dev/devmarks/api/auth"
 	"leggett.dev/devmarks/api/model"
 )
@@ -28,45 +28,53 @@ type UserResponse struct {
 }
 
 // CreateUser creates a new user based on the json data provided in the HTTP Request
-func (a *API) CreateUser(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+func (a *API) CreateUser(w http.ResponseWriter, r *http.Request) {
 	var input UserInput
 
 	defer r.Body.Close()
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		return err
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
 	}
 
 	if err := json.Unmarshal(body, &input); err != nil {
-		return err
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
 	}
 
 	user := &model.User{Email: input.Email}
 
 	if err := a.App.CreateUser(user, input.Password); err != nil {
-		return err
+		if err, ok := err.(*app.ValidationError); ok {
+			respondWithError(w, http.StatusBadRequest, err.Error())
+		} else {
+			respondWithError(w, http.StatusInternalServerError, err.Error())
+		}
+		return
 	}
 
-	data, err := json.Marshal(&UserResponse{ID: user.ID})
+	err = respondWithJSON(w, http.StatusInternalServerError, &UserResponse{ID: user.ID})
 	if err != nil {
-		return err
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
 	}
-
-	_, err = w.Write(data)
-	return err
 }
 
 // GetUser Retrieves the authenticated user from the database
-func (a *API) GetUser(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+func (a *API) GetUser(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	user := myAuth.GetUser(ctx)
-
-	data, err := json.Marshal(user)
-	if err != nil {
-		return err
+	if user == nil {
+		respondWithError(w, http.StatusUnauthorized, "no user signed in")
+		return
 	}
 
-	_, err = w.Write(data)
-	return err
+	err := respondWithJSON(w, http.StatusOK, user)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
 }
 
 func (a *API) validateLogin(r *http.Request, userName, password string) (auth.Info, error) {
@@ -85,27 +93,36 @@ func (a *API) validateLogin(r *http.Request, userName, password string) (auth.In
 	return auth.NewDefaultUser(user.Email, strconv.Itoa(int(user.ID)), nil, nil), nil
 }
 
-func (a *API) createToken(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+type TokenResponse struct {
+	Token string `json:"token"`
+}
+
+func (a *API) createToken(w http.ResponseWriter, r *http.Request) {
 	var input UserInput
 
 	defer r.Body.Close()
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		return err
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
 	}
 
 	if err := json.Unmarshal(body, &input); err != nil {
-		return err
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
 	}
 
 	user, err := a.validateLogin(r, input.Email, input.Password)
 	if err != nil {
-		return err
+		respondWithError(w, http.StatusBadRequest, err.Error())
+		return
 	}
 
 	bearerToken := uuid.New().String()
 	a.App.AuthCache.Store(bearerToken, user, r)
-	responseBody := fmt.Sprintf("{ \"token\": \"%s\" }\n", bearerToken)
-	_, err = w.Write([]byte(responseBody))
-	return err
+	err = respondWithJSON(w, http.StatusOK, &TokenResponse{Token: fmt.Sprintf("%s", bearerToken)})
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
 }
