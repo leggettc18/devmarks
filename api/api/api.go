@@ -2,36 +2,24 @@ package api
 
 import (
 	"context"
-	"encoding/base64"
 	"encoding/json"
-	"fmt"
-	"io/ioutil"
 	"net/http"
-	"runtime/debug"
-	"strings"
 	"time"
 
-	"github.com/friendsofgo/graphiql"
 	"github.com/gorilla/mux"
 	"github.com/graph-gophers/graphql-go"
-	"github.com/graph-gophers/graphql-go/relay"
-	"github.com/graph-gophers/graphql-transport-ws/graphqlws"
 	"github.com/shaj13/go-guardian/auth"
 	"github.com/shaj13/go-guardian/auth/strategies/token"
 	"github.com/shaj13/go-guardian/store"
-	"github.com/sirupsen/logrus"
 
 	"leggett.dev/devmarks/api/app"
 	myAuth "leggett.dev/devmarks/api/auth"
-	"leggett.dev/devmarks/api/graphql/resolvers"
 	"leggett.dev/devmarks/api/log"
-	"leggett.dev/devmarks/api/model"
 )
 
 var (
 	opts = []graphql.SchemaOpt{graphql.UseStringDescriptions()}
 )
-
 
 type statusCodeRecorder struct {
 	http.ResponseWriter
@@ -102,151 +90,19 @@ func (a *API) Init(r *mux.Router) {
 	bookmarksRouter.HandleFunc("/{id:[0-9]+}/", a.UpdateBookmarkByID).Methods("PATCH")
 	bookmarksRouter.HandleFunc("/{id:[0-9]+}/", a.DeleteBookmarkByID).Methods("DELETE")
 }
-
-func parseSchema(path string, resolver interface{}) *graphql.Schema {
-	bstr, err := ioutil.ReadFile(path)
-	if err != nil {
-		panic(err)
-	}
-	schemaString := string(bstr)
-	parsedSchema, err := graphql.ParseSchema(
-		schemaString,
-		resolver,
-		opts...,
-	)
-	if err != nil {
-		panic(err)
-	}
-	return parsedSchema
-}
-
-func (a *API) InitGraphql(r *mux.Router) {
-	// graphql
-	rootResolver, err := resolvers.NewRoot(a.App)
-	schema := parseSchema("./schema.graphql", rootResolver)
-	wsHandler:= graphqlws.NewHandlerFunc(
-		schema,
-		&relay.Handler{
-			Schema: schema,
-		},
-	)
-	r.HandleFunc("/graphql", func(w http.ResponseWriter, r *http.Request) {
-		r.Body = http.MaxBytesReader(w, r.Body, 100*1024*1024)
-		beginTime := time.Now()
-		hijacker, _ := w.(http.Hijacker)
-		w = &statusCodeRecorder{
-			ResponseWriter: w,
-			Hijacker: hijacker,
-		}
-		token := strings.ReplaceAll(r.Header.Get("Authorization"), "Bearer ", "")
-		ctx := context.WithValue(context.Background(), "token", token)
-		//ctx = context.WithValue(ctx, "remote_address", a.IPAddressForRequest((r)))
-		logger := logrus.New()
-		ctx = context.WithValue(ctx, "logger", logger.WithField("request_id", base64.RawURLEncoding.EncodeToString(model.NewID())))
-		wsHandler.ServeHTTP(w, r.WithContext(ctx))
-		defer func() {
-			statusCode := w.(*statusCodeRecorder).StatusCode
-			if statusCode == 0 {
-				statusCode = 200
-			}
-			duration := time.Since(beginTime)
-
-			logger := logger.WithFields(logrus.Fields{
-				"duration":    duration,
-				"status_code": statusCode,
-				"remote":      ctx.Value("remote_address").(string),
-			})
-			logger.Info(r.Method + " " + r.URL.RequestURI())
-		}()
-
-		defer func() {
-			if r := recover(); r != nil {
-				logger.Error(fmt.Errorf("%v: %s", r, debug.Stack()))
-				http.Error(w, "internal server error", http.StatusInternalServerError)
-			}
-		}()
-
-		w.Header().Set("Content-Type", "application/json")
-	})
-	// graphiql
-	graphiqlHandler, err := graphiql.NewGraphiqlHandler("/graphql")
-	if err != nil {
-		panic(err)
-	}
-	r.Handle("/graphiql", graphiqlHandler).Methods("GET")
-}
-
-// func (a *API) handler(f func(context.Context, http.ResponseWriter, *http.Request) error) http.Handler {
-// 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-// 		ctx := r.Context()
-
-// 		if err := f(ctx, w, r); err != nil {
-// 			if verr, ok := err.(*app.ValidationError); ok {
-// 				data, err := json.Marshal(verr)
-// 				if err == nil {
-// 					w.WriteHeader(http.StatusBadRequest)
-// 					_, err = w.Write(data)
-// 				}
-
-// 				if err != nil {
-// 					//log.GetLogger(ctx).Error(err)
-// 					http.Error(w, "interval server error", http.StatusInternalServerError)
-// 				}
-// 			} else if uerr, ok := err.(*app.UserError); ok {
-// 				data, err := json.Marshal(uerr)
-// 				if err == nil {
-// 					w.WriteHeader(uerr.StatusCode)
-// 					_, err = w.Write(data)
-// 				}
-
-// 				if err != nil {
-// 					//log.GetLogger(ctx).Error(err)
-// 					http.Error(w, "internal server error", http.StatusInternalServerError)
-// 				}
-// 			} else {
-// 				//log.GetLogger(ctx).Error(err)
-// 				http.Error(w, "internal server error", http.StatusInternalServerError)
-// 			}
-// 		}
-// 	})
-// }
-
 func respondWithError(w http.ResponseWriter, code int, message string) {
-    respondWithJSON(w, code, map[string]string{"error": message})
+	respondWithJSON(w, code, map[string]string{"error": message})
 }
 
-func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) error{
-    response, err := json.Marshal(payload)
+func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) error {
+	response, err := json.Marshal(payload)
 
 	if err != nil {
 		return err
 	}
 
-    w.Header().Set("Content-Type", "application/json")
-    w.WriteHeader(code)
-    w.Write(response)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
+	w.Write(response)
 	return nil
 }
-
-// // IPAddressForRequest gets the IP address from our HTTP request
-// func (a *API) IPAddressForRequest(r *http.Request) string {
-// 	addr := r.RemoteAddr
-// 	if a.Config.ProxyCount > 0 {
-// 		h := r.Header.Get("X-Forwarded-For")
-// 		if h != "" {
-// 			clients := strings.Split(h, ",")
-// 			if a.Config.ProxyCount > len(clients) {
-// 				addr = clients[0]
-// 			} else {
-// 				addr = clients[len(clients)-a.Config.ProxyCount]
-// 			}
-// 		}
-// 	}
-// 	//TODO: consider refactoring to use regex instead.
-// 	if (strings.Contains(addr, "[")) { //If addr is ipv6
-// 		sep_strings := strings.Split(strings.TrimSpace(addr), ":") //split string at the colons
-// 		sep_strings = sep_strings[:len(sep_strings) -1] //remove the last string (the port number)
-// 		return strings.Join(sep_strings, ":") //Join the remaining elements back together into one string with the colons in between.
-// 	} //If addr is ipv4
-// 	return strings.Split(strings.TrimSpace(addr), ":")[0]
-// }

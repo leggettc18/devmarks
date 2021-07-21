@@ -21,7 +21,6 @@ import (
 func serveAPI(ctx context.Context, api *api.API) {
 	router := mux.NewRouter()
 	api.Init(router)
-	api.InitGraphql(router)
 
 	var server *http.Server
 	var handler http.Handler
