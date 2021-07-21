@@ -9,7 +9,7 @@ type Folder struct {
 	Name  string
 	Color string
 
-	ParentID uint    `json:"parent_id"`
+	ParentID *uint    `json:"parent_id"`
 	Parent   *Folder `gorm:"association_foreignkey:ParentID"`
 	OwnerID  uint    `json:"owner_id"`
 	Owner    *User   `gorm:"association_foreignkey:UserID"`

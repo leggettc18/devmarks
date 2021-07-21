@@ -89,6 +89,9 @@ func (a *API) Init(r *mux.Router) {
 	bookmarksRouter.HandleFunc("/{id:[0-9]+}/", a.GetBookmarkByID).Methods("GET")
 	bookmarksRouter.HandleFunc("/{id:[0-9]+}/", a.UpdateBookmarkByID).Methods("PATCH")
 	bookmarksRouter.HandleFunc("/{id:[0-9]+}/", a.DeleteBookmarkByID).Methods("DELETE")
+
+	foldersRouter := r.PathPrefix("/folders").Subrouter()
+	foldersRouter.HandleFunc("/", a.CreateFolder).Methods("POST")
 }
 func respondWithError(w http.ResponseWriter, code int, message string) {
 	respondWithJSON(w, code, map[string]string{"error": message})
