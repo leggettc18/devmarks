@@ -8,7 +8,7 @@ func (ctx *Context) GetBookmarkByID(id uint) (*model.Bookmark, error) {
 		return nil, ctx.AuthorizationError()
 	}
 
-	bookmark, err := ctx.Database.GetBookmarkByID(id)
+	bookmark, err := ctx.Database.GetBookmarkByID(id, nil)
 	if err != nil {
 		return nil, err
 	}

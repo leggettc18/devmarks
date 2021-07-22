@@ -6,10 +6,23 @@ import (
 	"leggett.dev/devmarks/api/model"
 )
 
+func contains(array []string, s string) bool {
+	for _, x := range array {
+		if x == s {
+			return true
+		}
+	}
+	return false
+}
+
 // GetBookmarkByID queries the database for a bookmark with the specified id
-func (db *Database) GetBookmarkByID(id uint) (*model.Bookmark, error) {
+func (db *Database) GetBookmarkByID(id uint, embeds []string) (*model.Bookmark, error) {
 	var bookmark model.Bookmark
-	return &bookmark, errors.Wrap(db.First(&bookmark, id).Error, "unable to get bookmark")
+	if contains(embeds, "owner") {
+		return &bookmark, errors.Wrap(db.Preload("Owner").First(&bookmark, id).Error, "unable to get bookmark")
+	} else {
+		return &bookmark, errors.Wrap(db.First(&bookmark, id).Error, "unable to get bookmark")
+	}
 }
 
 // GetBookmarksByUserID returns all the bookmarks from the database that are owned by the user

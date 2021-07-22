@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gorilla/mux"
 	"leggett.dev/devmarks/api/auth"
@@ -100,7 +101,9 @@ func (a *API) GetBookmarkByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	id := getIDFromRequest(r)
-	bookmark, err := a.App.Database.GetBookmarkByID(id)
+	values := r.URL.Query()
+	embeds := strings.Split(values.Get("embed"), ",")
+	bookmark, err := a.App.Database.GetBookmarkByID(id, embeds)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
@@ -150,7 +153,7 @@ func (a *API) UpdateBookmarkByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	existingBookmark, err := a.App.Database.GetBookmarkByID(id)
+	existingBookmark, err := a.App.Database.GetBookmarkByID(id, nil)
 	if err != nil || existingBookmark == nil {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return

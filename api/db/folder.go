@@ -15,7 +15,7 @@ func (db *Database) GetFolderByID(id uint) (*model.Folder, error) {
 }
 
 func (db *Database) AddBookmarkToFolder(bookmark_id uint, folder_id uint) error {
-	bookmark, err := db.GetBookmarkByID(bookmark_id)
+	bookmark, err := db.GetBookmarkByID(bookmark_id, nil)
 	if err != nil {
 		return err
 	}
