@@ -219,3 +219,15 @@ func getIDFromRequest(r *http.Request) uint {
 
 	return uint(intID)
 }
+
+func getBIDFromRequest(r *http.Request) uint {
+	vars := mux.Vars(r)
+	id := vars["bid"]
+
+	intID, err := strconv.ParseInt(id, 10, 0)
+	if err != nil {
+		return 0
+	}
+
+	return uint(intID)
+}

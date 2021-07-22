@@ -92,6 +92,7 @@ func (a *API) Init(r *mux.Router) {
 
 	foldersRouter := r.PathPrefix("/folders").Subrouter()
 	foldersRouter.HandleFunc("/", a.CreateFolder).Methods("POST")
+	foldersRouter.HandleFunc("/{id:[0-9]+}/bookmarks/{bid:[0-9]+}/", a.AddBookmarkToFolder).Methods("PATCH")
 }
 func respondWithError(w http.ResponseWriter, code int, message string) {
 	respondWithJSON(w, code, map[string]string{"error": message})

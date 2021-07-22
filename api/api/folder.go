@@ -55,3 +55,29 @@ func (a *API) CreateFolder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func (a *API) AddBookmarkToFolder(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	user := auth.GetUser(ctx)
+	if user == nil {
+		respondWithError(w, http.StatusUnauthorized, "no user is signed in")
+		return
+	}
+	folder_id := getIDFromRequest(r)
+	bookmark_id := getBIDFromRequest(r)
+
+	if err := a.App.Database.AddBookmarkToFolder(bookmark_id, folder_id); err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	folder, err := a.App.Database.GetFolderByID(folder_id)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	if err = respondWithJSON(w, http.StatusOK, folder); err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+}
