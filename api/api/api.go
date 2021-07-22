@@ -91,6 +91,8 @@ func (a *API) Init(r *mux.Router) {
 	bookmarksRouter.HandleFunc("/{id:[0-9]+}/", a.DeleteBookmarkByID).Methods("DELETE")
 
 	foldersRouter := r.PathPrefix("/folders").Subrouter()
+	foldersRouter.HandleFunc("/", a.GetFolders).Methods("GET")
+	foldersRouter.HandleFunc("/{id:[0-9]+}/", a.GetFolderByID).Methods("GET")
 	foldersRouter.HandleFunc("/", a.CreateFolder).Methods("POST")
 	foldersRouter.HandleFunc("/{id:[0-9]+}/bookmarks/{bid:[0-9]+}/", a.AddBookmarkToFolder).Methods("PATCH")
 }
