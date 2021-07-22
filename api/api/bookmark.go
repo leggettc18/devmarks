@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/gorilla/mux"
 	"leggett.dev/devmarks/api/auth"
@@ -20,7 +19,7 @@ func (a *API) GetBookmarks(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusUnauthorized, "no user signed in")
 		return
 	}
-	bookmarks, err := a.App.Database.GetBookmarksByUserID(user.ID)
+	bookmarks, err := a.App.Database.GetBookmarksByUserID(ctx, user.ID)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
@@ -95,9 +94,7 @@ func (a *API) GetBookmarkByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	id := getIDFromRequest(r)
-	values := r.URL.Query()
-	embeds := strings.Split(values.Get("embed"), ",")
-	bookmark, err := a.App.Database.GetBookmarkByID(id, embeds)
+	bookmark, err := a.App.Database.GetBookmarkByID(ctx, id)
 	if err != nil {
 		respondWithError(w, http.StatusNotFound, err.Error())
 		return
@@ -147,7 +144,7 @@ func (a *API) UpdateBookmarkByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	existingBookmark, err := a.App.Database.GetBookmarkByID(id, nil)
+	existingBookmark, err := a.App.Database.GetBookmarkByID(ctx, id)
 	if err != nil || existingBookmark == nil {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return

@@ -1,6 +1,8 @@
 package db
 
 import (
+	"context"
+
 	"github.com/pkg/errors"
 	"leggett.dev/devmarks/api/model"
 )
@@ -19,8 +21,8 @@ func (db *Database) GetFolderByID(id uint) (*model.Folder, error) {
 	return &folder, errors.Wrap(db.Preload("Bookmarks").First(&folder, id).Error, "unable to get folder")
 }
 
-func (db *Database) AddBookmarkToFolder(bookmark_id uint, folder_id uint) error {
-	bookmark, err := db.GetBookmarkByID(bookmark_id, nil)
+func (db *Database) AddBookmarkToFolder(ctx context.Context, bookmark_id uint, folder_id uint) error {
+	bookmark, err := db.GetBookmarkByID(ctx, bookmark_id)
 	if err != nil {
 		return err
 	}

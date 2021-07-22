@@ -3,36 +3,36 @@ package app
 import "leggett.dev/devmarks/api/model"
 
 // GetBookmarkByID returns a Bookmark model from the bookmark's ID
-func (ctx *Context) GetBookmarkByID(id uint) (*model.Bookmark, error) {
-	if ctx.User == nil {
-		return nil, ctx.AuthorizationError()
-	}
+// func (ctx *Context) GetBookmarkByID(id uint) (*model.Bookmark, error) {
+// 	if ctx.User == nil {
+// 		return nil, ctx.AuthorizationError()
+// 	}
 
-	bookmark, err := ctx.Database.GetBookmarkByID(id, nil)
-	if err != nil {
-		return nil, err
-	}
+// 	bookmark, err := ctx.Database.GetBookmarkByID(ctx, id)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	if bookmark.OwnerID != ctx.User.ID {
-		return nil, ctx.AuthorizationError()
-	}
+// 	if bookmark.OwnerID != ctx.User.ID {
+// 		return nil, ctx.AuthorizationError()
+// 	}
 
-	return bookmark, nil
-}
+// 	return bookmark, nil
+// }
 
-func (ctx *Context) getBookmarksByUserID(userID uint) ([]*model.Bookmark, error) {
-	return ctx.Database.GetBookmarksByUserID(userID)
-}
+// func (ctx *Context) getBookmarksByUserID(userID uint) ([]*model.Bookmark, error) {
+// 	return ctx.Database.GetBookmarksByUserID(userID)
+// }
 
 // GetUserBookmarks returns a slice of all bookmark models that are owned by
 // The currently authenticated User
-func (ctx *Context) GetUserBookmarks() ([]*model.Bookmark, error) {
-	if ctx.User == nil {
-		return nil, ctx.AuthorizationError()
-	}
+// func (ctx *Context) GetUserBookmarks() ([]*model.Bookmark, error) {
+// 	if ctx.User == nil {
+// 		return nil, ctx.AuthorizationError()
+// 	}
 
-	return ctx.getBookmarksByUserID(ctx.User.ID)
-}
+// 	return ctx.getBookmarksByUserID(ctx.User.ID)
+// }
 
 // CreateBookmark performs the business logic necessary to create and
 // validate a Bookmark given an initial instance of one
@@ -84,19 +84,19 @@ func (ctx *Context) UpdateBookmark(bookmark *model.Bookmark) error {
 
 // DeleteBookmarkByID performs the necessary business logic to delete
 // a bookmark owned by the currently authenticated user
-func (ctx *Context) DeleteBookmarkByID(id uint) error {
-	if ctx.User == nil {
-		return ctx.AuthorizationError()
-	}
+// func (ctx *Context) DeleteBookmarkByID(id uint) error {
+// 	if ctx.User == nil {
+// 		return ctx.AuthorizationError()
+// 	}
 
-	bookmark, err := ctx.GetBookmarkByID(id)
-	if err != nil {
-		return err
-	}
+// 	bookmark, err := ctx.GetBookmarkByID(id)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	if bookmark.OwnerID != ctx.User.ID {
-		return ctx.AuthorizationError()
-	}
+// 	if bookmark.OwnerID != ctx.User.ID {
+// 		return ctx.AuthorizationError()
+// 	}
 
-	return ctx.Database.DeleteBookmarkByID(id)
-}
+// 	return ctx.Database.DeleteBookmarkByID(id)
+// }

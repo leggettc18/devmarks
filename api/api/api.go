@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -13,6 +14,7 @@ import (
 
 	"leggett.dev/devmarks/api/app"
 	myAuth "leggett.dev/devmarks/api/auth"
+	"leggett.dev/devmarks/api/helpers"
 	"leggett.dev/devmarks/api/log"
 )
 
@@ -47,7 +49,12 @@ func (a *API) setupGoGuardian() {
 func apiMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		r.Body = http.MaxBytesReader(w, r.Body, 100*1024*1024)
-		next.ServeHTTP(w, r)
+		values := r.URL.Query()
+		embeds := strings.Split(values.Get("embed"), ",")
+		ctx := r.Context()
+		ctx = context.WithValue(ctx, helpers.EmbedsKey, embeds)
+		next.ServeHTTP(w, r.WithContext(ctx))
+		
 	})
 }
 

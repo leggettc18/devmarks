@@ -11,7 +11,7 @@ type Folder struct {
 
 	ParentID *uint    `json:"parent_id"`
 	Parent   *Folder `gorm:"association_foreignkey:ParentID"`
-	OwnerID  uint    `json:"owner_id"`
+	OwnerID  uint    `json:"-"`
 	Owner    *User   `gorm:"association_foreignkey:UserID"`
 	//Organizations []Organization `gorm:"many2many:folder_organization;"`
 	Bookmarks []Bookmark `gorm:"many2many:bookmark_folder;"`

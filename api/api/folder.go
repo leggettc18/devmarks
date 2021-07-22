@@ -104,7 +104,7 @@ func (a *API) AddBookmarkToFolder(w http.ResponseWriter, r *http.Request) {
 	folder_id := getIDFromRequest(r)
 	bookmark_id := getBIDFromRequest(r)
 
-	if err := a.App.Database.AddBookmarkToFolder(bookmark_id, folder_id); err != nil {
+	if err := a.App.Database.AddBookmarkToFolder(ctx, bookmark_id, folder_id); err != nil {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
