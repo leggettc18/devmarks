@@ -57,10 +57,6 @@ type CreateFolderInput struct {
 	ParentID *uint `json:"parent_id"`
 }
 
-type CreateFolderResponse struct {
-	ID uint `json:"id"`
-}
-
 func (a *API) CreateFolder(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	user := auth.GetUser(ctx)
@@ -91,7 +87,7 @@ func (a *API) CreateFolder(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 	}
 
-	err = respondWithJSON(w, http.StatusOK, &CreateFolderResponse{ID: folder.ID})
+	err = respondWithJSON(w, http.StatusCreated, folder)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
