@@ -78,7 +78,7 @@ func (a *API) CreateFolder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if input.Name == "" {
-		respondWithError(w, http.StatusBadRequest, "name is required")
+		respondWithError(w, http.StatusUnprocessableEntity, "name is required")
 		return
 	}
 	folder := &model.Folder{Name: input.Name, Color: input.Color, ParentID:input.ParentID, OwnerID: user.ID}

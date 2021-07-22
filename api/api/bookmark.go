@@ -67,7 +67,7 @@ func (a *API) CreateBookmark(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if input.Name == "" {
-		respondWithError(w, http.StatusBadRequest, "name is required")
+		respondWithError(w, http.StatusUnprocessableEntity, "name is required")
 		return
 	}
 	bookmark := &model.Bookmark{Name: input.Name, URL: input.URL, Color: &input.Color, OwnerID: user.ID}
