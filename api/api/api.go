@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/graph-gophers/graphql-go"
 	"github.com/shaj13/go-guardian/auth"
 	"github.com/shaj13/go-guardian/auth/strategies/token"
 	"github.com/shaj13/go-guardian/store"
@@ -16,21 +15,6 @@ import (
 	myAuth "leggett.dev/devmarks/api/auth"
 	"leggett.dev/devmarks/api/log"
 )
-
-var (
-	opts = []graphql.SchemaOpt{graphql.UseStringDescriptions()}
-)
-
-type statusCodeRecorder struct {
-	http.ResponseWriter
-	http.Hijacker
-	StatusCode int
-}
-
-func (r *statusCodeRecorder) WriteHeader(statusCode int) {
-	r.StatusCode = statusCode
-	r.ResponseWriter.WriteHeader(statusCode)
-}
 
 // API is an object representing our API's configuration, and includes a pointer
 // to our App's App object

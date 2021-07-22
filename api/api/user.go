@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -120,7 +119,7 @@ func (a *API) createToken(w http.ResponseWriter, r *http.Request) {
 
 	bearerToken := uuid.New().String()
 	a.App.AuthCache.Store(bearerToken, user, r)
-	err = respondWithJSON(w, http.StatusOK, &TokenResponse{Token: fmt.Sprintf("%s", bearerToken)})
+	err = respondWithJSON(w, http.StatusOK, &TokenResponse{Token: bearerToken})
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
