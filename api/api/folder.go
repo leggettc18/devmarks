@@ -38,7 +38,7 @@ func (a *API) GetFolderByID(w http.ResponseWriter, r *http.Request) {
 	}
 	folder, err := a.App.Database.GetFolderByID(id)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, err.Error())
+		respondWithError(w, http.StatusNotFound, err.Error())
 		return
 	}
 	if user.ID != folder.OwnerID {

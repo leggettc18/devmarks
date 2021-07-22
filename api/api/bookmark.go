@@ -99,7 +99,7 @@ func (a *API) GetBookmarkByID(w http.ResponseWriter, r *http.Request) {
 	embeds := strings.Split(values.Get("embed"), ",")
 	bookmark, err := a.App.Database.GetBookmarkByID(id, embeds)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, err.Error())
+		respondWithError(w, http.StatusNotFound, err.Error())
 		return
 	}
 
