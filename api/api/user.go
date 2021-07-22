@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -47,7 +46,7 @@ func (a *API) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	if err := a.App.CreateUser(user, input.Password); err != nil {
 		if err, ok := err.(*app.ValidationError); ok {
-			respondWithError(w, http.StatusBadRequest, err.Error())
+			respondWithError(w, http.StatusUnprocessableEntity, err.Error())
 		} else {
 			respondWithError(w, http.StatusInternalServerError, err.Error())
 		}
@@ -120,7 +119,7 @@ func (a *API) createToken(w http.ResponseWriter, r *http.Request) {
 
 	bearerToken := uuid.New().String()
 	a.App.AuthCache.Store(bearerToken, user, r)
-	err = respondWithJSON(w, http.StatusOK, &TokenResponse{Token: fmt.Sprintf("%s", bearerToken)})
+	err = respondWithJSON(w, http.StatusOK, &TokenResponse{Token: bearerToken})
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return

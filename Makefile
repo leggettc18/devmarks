@@ -10,7 +10,7 @@ SUCCESS=[ done "\xE2\x9C\x94" ]
 user ?= root
 service ?= api
 
-all: traefik-network postgres-network postgres-volume
+all: traefik-network postgres-network postgres-devmarks-volume
 	@echo [ starting client '&' api... ]
 	docker-compose up --build traefik api web db
 

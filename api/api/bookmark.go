@@ -40,12 +40,6 @@ type CreateBookmarkInput struct {
 	Color string `json:"color"`
 }
 
-// CreateBookmarkResponse represents the response that will be sent upon completion of
-// the CreateBookmark function
-type CreateBookmarkResponse struct {
-	ID uint `json:"id"`
-}
-
 // CreateBookmark creates a new bookmark owned by the currently authenticated user based
 // on json from the HTTP Request
 func (a *API) CreateBookmark(w http.ResponseWriter, r *http.Request) {
@@ -74,7 +68,7 @@ func (a *API) CreateBookmark(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if input.Name == "" {
-		respondWithError(w, http.StatusBadRequest, "name is required")
+		respondWithError(w, http.StatusUnprocessableEntity, "name is required")
 		return
 	}
 	bookmark := &model.Bookmark{Name: input.Name, URL: input.URL, Color: &input.Color, OwnerID: user.ID}
@@ -84,7 +78,7 @@ func (a *API) CreateBookmark(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = respondWithJSON(w, http.StatusOK, &CreateBookmarkResponse{ID: bookmark.ID})
+	err = respondWithJSON(w, http.StatusCreated, bookmark)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return

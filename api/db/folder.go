@@ -9,6 +9,11 @@ func (db *Database) CreateFolder(folder *model.Folder) error {
 	return errors.Wrap(db.Create(folder).Error, "unable to create folder")
 }
 
+func (db *Database) GetFoldersByUserID(userID uint) ([]*model.Folder, error) {
+	var folders []*model.Folder
+	return folders, errors.Wrap(db.Find(&folders, model.Folder{OwnerID: userID}).Error, "unable to get folders")
+}
+
 func (db *Database) GetFolderByID(id uint) (*model.Folder, error) {
 	var folder model.Folder
 	return &folder, errors.Wrap(db.Preload("Bookmarks").First(&folder, id).Error, "unable to get folder")
