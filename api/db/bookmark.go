@@ -35,8 +35,8 @@ func (db *Database) GetBookmarkByID(ctx context.Context, id uint) (*model.Bookma
 	return &bookmark, errors.Wrap(instance.First(&bookmark, id).Error, "unable to get bookmark")
 }
 
-// GetBookmarksByUserID returns all the bookmarks from the database that are owned by the user
-// corresponding to the userID provided.
+// GetBookmarksByUserID returns all the bookmarks from the database that are
+// owned by the user corresponding to the userID provided.
 func (db *Database) GetBookmarksByUserID(ctx context.Context, userID uint) ([]*model.Bookmark, error) {
 	var bookmarks []*model.Bookmark
 	embeds, ok := ctx.Value(helpers.EmbedsKey).([]string)
@@ -62,7 +62,8 @@ func (db *Database) UpdateBookmark(bookmark *model.Bookmark) error {
 	return errors.Wrap(db.Save(bookmark).Error, "unable to update bookmark")
 }
 
-// DeleteBookmarkByID deletes the bookmark with the specified ID from the databse.
+// DeleteBookmarkByID deletes the bookmark with the specified ID from the
+// databse.
 func (db *Database) DeleteBookmarkByID(id uint) error {
 	return errors.Wrap(db.Delete(&model.Bookmark{}, id).Error, "unable to delete todo")
 }
