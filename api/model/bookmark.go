@@ -14,3 +14,9 @@ type Bookmark struct {
 	Folders []Folder `gorm:"many2many:bookmark_folder;" json:"folders"`
 	Tags    []Tag    `gorm:"many2many:bookmark_tag;" json:"tags"`
 }
+
+// Add strings to the array to allow embedding that resource through the
+// embed query paramter.
+func BookmarkValidEmbeds() []string {
+	return []string{"owner", "folders"}
+}

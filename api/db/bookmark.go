@@ -2,11 +2,12 @@ package db
 
 import (
 	"context"
+	"strings"
 
 	"github.com/pkg/errors"
 
-	"leggett.dev/devmarks/api/model"
 	"leggett.dev/devmarks/api/helpers"
+	"leggett.dev/devmarks/api/model"
 )
 
 func contains(array []string, s string) bool {
@@ -25,11 +26,13 @@ func (db *Database) GetBookmarkByID(ctx context.Context, id uint) (*model.Bookma
 	if !ok {
 		return nil, errors.New("embeds parsing error")
 	}
-	if contains(embeds, "owner") {
-		return &bookmark, errors.Wrap(db.Preload("Owner").First(&bookmark, id).Error, "unable to get bookmark")
-	} else {
-		return &bookmark, errors.Wrap(db.First(&bookmark, id).Error, "unable to get bookmark")
+	var instance = db.DB
+	for _, embed := range embeds {
+		if contains(model.BookmarkValidEmbeds(), embed) {
+			instance = instance.Preload(strings.Title(embed))
+		}
 	}
+	return &bookmark, errors.Wrap(instance.First(&bookmark, id).Error, "unable to get bookmark")
 }
 
 // GetBookmarksByUserID returns all the bookmarks from the database that are owned by the user
@@ -40,10 +43,13 @@ func (db *Database) GetBookmarksByUserID(ctx context.Context, userID uint) ([]*m
 	if !ok {
 		return nil, errors.New("embeds parsing error")
 	}
-	if contains(embeds, "owner") {
-			return bookmarks, errors.Wrap(db.Preload("Owner").Find(&bookmarks, model.Bookmark{OwnerID: userID}).Error, "unable to get bookmarks")
+	var instance = db.DB
+	for _, embed := range embeds {
+		if contains(model.BookmarkValidEmbeds(), embed) {
+			instance = instance.Preload(strings.Title(embed))
+		}
 	}
-	return bookmarks, errors.Wrap(db.Find(&bookmarks, model.Bookmark{OwnerID: userID}).Error, "unable to get bookmarks")
+	return bookmarks, errors.Wrap(instance.Find(&bookmarks, model.Bookmark{OwnerID: userID}).Error, "unable to get bookmarks")
 }
 
 // CreateBookmark inserts the specified bookmark into the database.

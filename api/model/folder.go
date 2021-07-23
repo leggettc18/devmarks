@@ -6,16 +6,16 @@ package model
 type Folder struct {
 	Model
 
-	Name  string
-	Color string
+	Name  string `json:"name"`
+	Color string `json:"color"`
 
 	ParentID *uint    `json:"parent_id"`
-	Parent   *Folder `gorm:"association_foreignkey:ParentID"`
+	Parent   *Folder `gorm:"association_foreignkey:ParentID" json:"parent"`
 	OwnerID  uint    `json:"-"`
 	Owner    *User   `gorm:"foreignkey:OwnerID" json:"owner"`
 	//Organizations []Organization `gorm:"many2many:folder_organization;"`
-	Bookmarks []Bookmark `gorm:"many2many:bookmark_folder;"`
-	Users     []User     `gorm:"many2many:folder_user;"`
+	Bookmarks []Bookmark `gorm:"many2many:bookmark_folder;" json:"bookmarks"`
+	Users     []User     `gorm:"many2many:folder_user;" json:"users"`
 }
 
 // Add strings to the array to allow embedding that resource through the
