@@ -18,6 +18,8 @@ type Folder struct {
 	Users     []User     `gorm:"many2many:folder_user;"`
 }
 
+// Add strings to the array to allow embedding that resource through the
+// embed query paramter.
 func FolderValidEmbeds() []string {
 	return []string{"owner", "bookmarks"}
 }
