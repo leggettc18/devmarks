@@ -2,7 +2,6 @@ package db
 
 import (
 	"context"
-	"strings"
 
 	"github.com/pkg/errors"
 
@@ -26,13 +25,7 @@ func (db *Database) GetBookmarkByID(ctx context.Context, id uint) (*model.Bookma
 	if !ok {
 		return nil, errors.New("embeds parsing error")
 	}
-	var instance = db.DB
-	for _, embed := range embeds {
-		if contains(model.BookmarkValidEmbeds(), embed) {
-			instance = instance.Preload(strings.Title(embed))
-		}
-	}
-	return &bookmark, errors.Wrap(instance.First(&bookmark, id).Error, "unable to get bookmark")
+	return &bookmark, errors.Wrap(db.preloadEmbeds(model.BookmarkValidEmbeds(), embeds).First(&bookmark, id).Error, "unable to get bookmark")
 }
 
 // GetBookmarksByUserID returns all the bookmarks from the database that are
@@ -43,13 +36,7 @@ func (db *Database) GetBookmarksByUserID(ctx context.Context, userID uint) ([]*m
 	if !ok {
 		return nil, errors.New("embeds parsing error")
 	}
-	var instance = db.DB
-	for _, embed := range embeds {
-		if contains(model.BookmarkValidEmbeds(), embed) {
-			instance = instance.Preload(strings.Title(embed))
-		}
-	}
-	return bookmarks, errors.Wrap(instance.Find(&bookmarks, model.Bookmark{OwnerID: userID}).Error, "unable to get bookmarks")
+	return bookmarks, errors.Wrap(db.preloadEmbeds(model.BookmarkValidEmbeds(), embeds).Find(&bookmarks, model.Bookmark{OwnerID: userID}).Error, "unable to get bookmarks")
 }
 
 // CreateBookmark inserts the specified bookmark into the database.

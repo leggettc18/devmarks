@@ -2,8 +2,7 @@ package db
 
 import (
 	"context"
-	"strings"
-
+	
 	"github.com/pkg/errors"
 	"leggett.dev/devmarks/api/helpers"
 	"leggett.dev/devmarks/api/model"
@@ -19,13 +18,7 @@ func (db *Database) GetFoldersByUserID(ctx context.Context, userID uint) ([]*mod
 	if !ok {
 		return nil, errors.New("embeds parsing error")
 	}
-	var instance = db.DB
-	for _, embed := range embeds {
-		if contains(model.FolderValidEmbeds(), embed) {
-			instance = instance.Preload(strings.Title(embed))
-		}
-	}
-	return folders, errors.Wrap(instance.Find(&folders, model.Folder{OwnerID: userID}).Error, "unable to get folders")
+	return folders, errors.Wrap(db.preloadEmbeds(model.FolderValidEmbeds(), embeds).Find(&folders, model.Folder{OwnerID: userID}).Error, "unable to get folders")
 }
 
 func (db *Database) GetFolderByID(ctx context.Context, id uint) (*model.Folder, error) {
@@ -34,13 +27,7 @@ func (db *Database) GetFolderByID(ctx context.Context, id uint) (*model.Folder, 
 	if !ok {
 		return nil, errors.New("embeds parsing error")
 	}
-	var instance = db.DB
-	for _, embed := range embeds {
-		if contains(model.FolderValidEmbeds(), embed) {
-			instance = instance.Preload(strings.Title(embed))
-		}
-	}
-	return &folder, errors.Wrap(instance.First(&folder, id).Error, "unable to get folder")
+	return &folder, errors.Wrap(db.preloadEmbeds(model.FolderValidEmbeds(), embeds).First(&folder, id).Error, "unable to get folder")
 }
 
 func (db *Database) AddBookmarkToFolder(ctx context.Context, bookmark_id uint, folder_id uint) error {
