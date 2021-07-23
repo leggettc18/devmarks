@@ -21,7 +21,9 @@ func (db *Database) GetFoldersByUserID(ctx context.Context, userID uint) ([]*mod
 	}
 	var instance = db.DB
 	for _, embed := range embeds {
-		instance = instance.Preload(strings.Title(embed))
+		if contains(model.FolderValidEmbeds(), embed) {
+			instance = instance.Preload(strings.Title(embed))
+		}
 	}
 	return folders, errors.Wrap(instance.Find(&folders, model.Folder{OwnerID: userID}).Error, "unable to get folders")
 }
@@ -34,7 +36,9 @@ func (db *Database) GetFolderByID(ctx context.Context, id uint) (*model.Folder, 
 	}
 	var instance = db.DB
 	for _, embed := range embeds {
-		instance = instance.Preload(strings.Title(embed))
+		if contains(model.FolderValidEmbeds(), embed) {
+			instance = instance.Preload(strings.Title(embed))
+		}
 	}
 	return &folder, errors.Wrap(instance.First(&folder, id).Error, "unable to get folder")
 }

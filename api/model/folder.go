@@ -17,3 +17,7 @@ type Folder struct {
 	Bookmarks []Bookmark `gorm:"many2many:bookmark_folder;"`
 	Users     []User     `gorm:"many2many:folder_user;"`
 }
+
+func FolderValidEmbeds() []string {
+	return []string{"owner", "bookmarks"}
+}
