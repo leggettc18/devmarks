@@ -4,7 +4,6 @@ import (
 	"strings"
 
 	"github.com/jinzhu/gorm"
-	"leggett.dev/devmarks/api/model"
 
 	// Blank becuase it is needed for gorm but never directly used
 	_ "github.com/jinzhu/gorm/dialects/postgres"
@@ -27,8 +26,8 @@ func New(config *Config) (*Database, error) {
 
 func (db *Database) preloadEmbeds(valid []string, embeds []string) *gorm.DB {
 	var instance = db.DB
-	for _, embed := range valid {
-		if contains(model.BookmarkValidEmbeds(), embed) {
+	for _, embed := range embeds {
+		if contains(valid, embed) {
 			instance = instance.Preload(strings.Title(embed))
 		}
 	}
