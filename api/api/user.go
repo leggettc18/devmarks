@@ -53,7 +53,7 @@ func (a *API) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = respondWithJSON(w, http.StatusInternalServerError, &UserResponse{ID: user.ID})
+	err = respondWithJSON(w, http.StatusCreated, &UserResponse{ID: user.ID})
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return

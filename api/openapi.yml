@@ -32,6 +32,39 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /users/:
+    post:
+      summary: 'User Endpoint for registration'
+      operationId: register
+      tags:
+        - user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - id
+                properties:
+                  id:
+                    type: integer
+                    format: int64
   /folders/:
     get:
       summary: 'Get a list of all folders the current user can access.'
@@ -51,6 +84,43 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Folder"
+              examples:
+                'with no embed parameter':
+                  value:
+                    id: 1
+                    name: Test Folder
+                    parent: null
+                    owner: null
+                    bookmarks: null
+                'with embed=parent':
+                  value:
+                    id: 2
+                    name: Test Folder 2
+                    parent:
+                      - id: 1
+                        name: Test Folder
+                        owner: null
+                        bookmarks: null
+                    owner: null
+                    bookmarks: null
+                'with embed=parent,bookmarks,owner':
+                  value:
+                    id: 2
+                    name: Test Folder 2
+                    parent:
+                      - id: 1
+                        name: Test Folder
+                        owner: null
+                        bookmarks: null
+                    owner:
+                      id: 1
+                      email: test@example.com
+                    bookmarks:
+                      - id: 1
+                        name: Test Bookmark
+                        url: https://www.test.com
+                        owner: null
+                        folders: null
   /folders/{id}:
     get:
       summary: 'Get a specific folder specified by the numeric `id`.'
@@ -139,12 +209,6 @@ components:
           type: array
           items:
             $ref:  "#/components/schemas/Bookmark"
-      example:
-        id: 2
-        name: Test Folder 2
-        parent:
-          - id: 1
-            name: Test Folder
     Error:
       type: object
       required:

@@ -15,7 +15,7 @@ type Folder struct {
 	Owner    *User   `gorm:"foreignkey:OwnerID" json:"owner"`
 	//Organizations []Organization `gorm:"many2many:folder_organization;"`
 	Bookmarks []Bookmark `gorm:"many2many:bookmark_folder;" json:"bookmarks"`
-	Users     []User     `gorm:"many2many:folder_user;" json:"users"`
+	//Users     []User     `gorm:"many2many:folder_user;" json:"users"`
 }
 
 // Add strings to the array to allow embedding that resource through the
