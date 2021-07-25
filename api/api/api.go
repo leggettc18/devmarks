@@ -58,34 +58,44 @@ func apiMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+// Removes the trailing slash from a URL, if present.
+// must be called BEFORE the router gets involved (see cmd/serve.go to see where
+// this gets added.)
+func (a *API) RemoveTrailingSlash(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		r.URL.Path = strings.TrimSuffix(r.URL.Path, "/")
+		next.ServeHTTP(w, r)
+	})
+}
+
 // Init Initializes our API (routes, authentication setup, etc.)
 func (a *API) Init(r *mux.Router) {
 	// authentication
 	a.setupGoGuardian()
 	logger := log.NewLogger(a.Config.ProxyCount)
 	r.Use(logger.LoggerMiddleware)
-	authSvc := myAuth.NewAuth(&[]string{"/users/", "/auth/token/"}, *a.App, &logger)
+	authSvc := myAuth.NewAuth(&[]string{"/users", "/auth/token"}, *a.App, &logger)
 	r.Use(authSvc.AuthMiddleware)
 	r.Use(apiMiddleware)
-	r.HandleFunc("/auth/token/", a.createToken).Methods("POST")
+	r.HandleFunc("/auth/token", a.createToken).Methods("POST")
 
 	// user methods
-	r.HandleFunc("/users/", a.CreateUser).Methods("POST")
-	r.HandleFunc("/me/", a.GetUser).Methods("GET")
+	r.HandleFunc("/users", a.CreateUser).Methods("POST")
+	r.HandleFunc("/me", a.GetUser).Methods("GET")
 
 	// bookmark methods
 	bookmarksRouter := r.PathPrefix("/bookmarks").Subrouter()
-	bookmarksRouter.HandleFunc("/", a.GetBookmarks).Methods("GET")
-	bookmarksRouter.HandleFunc("/", a.CreateBookmark).Methods("POST")
-	bookmarksRouter.HandleFunc("/{id:[0-9]+}/", a.GetBookmarkByID).Methods("GET")
-	bookmarksRouter.HandleFunc("/{id:[0-9]+}/", a.UpdateBookmarkByID).Methods("PATCH")
-	bookmarksRouter.HandleFunc("/{id:[0-9]+}/", a.DeleteBookmarkByID).Methods("DELETE")
+	bookmarksRouter.HandleFunc("", a.GetBookmarks).Methods("GET")
+	bookmarksRouter.HandleFunc("", a.CreateBookmark).Methods("POST")
+	bookmarksRouter.HandleFunc("/{id:[0-9]+}", a.GetBookmarkByID).Methods("GET")
+	bookmarksRouter.HandleFunc("/{id:[0-9]+}", a.UpdateBookmarkByID).Methods("PATCH")
+	bookmarksRouter.HandleFunc("/{id:[0-9]+}", a.DeleteBookmarkByID).Methods("DELETE")
 
 	foldersRouter := r.PathPrefix("/folders").Subrouter()
-	foldersRouter.HandleFunc("/", a.GetFolders).Methods("GET")
-	foldersRouter.HandleFunc("/{id:[0-9]+}/", a.GetFolderByID).Methods("GET")
-	foldersRouter.HandleFunc("/", a.CreateFolder).Methods("POST")
-	foldersRouter.HandleFunc("/{id:[0-9]+}/bookmarks/{bid:[0-9]+}/", a.AddBookmarkToFolder).Methods("PATCH")
+	foldersRouter.HandleFunc("", a.GetFolders).Methods("GET")
+	foldersRouter.HandleFunc("/{id:[0-9]+}", a.GetFolderByID).Methods("GET")
+	foldersRouter.HandleFunc("", a.CreateFolder).Methods("POST")
+	foldersRouter.HandleFunc("/{id:[0-9]+}/bookmarks/{bid:[0-9]+}", a.AddBookmarkToFolder).Methods("PATCH")
 }
 func respondWithError(w http.ResponseWriter, code int, message string) {
 	respondWithJSON(w, code, map[string]string{"error": message})

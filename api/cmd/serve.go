@@ -39,7 +39,7 @@ func serveAPI(ctx context.Context, api *api.API) {
 	}
 	server = &http.Server{
 		Addr:        fmt.Sprintf(":%d", api.Config.Port),
-		Handler:     handler,
+		Handler:     api.RemoveTrailingSlash(handler), //adds the remove trailing slash middleware.
 		ReadTimeout: 2 * time.Minute,
 	}
 
