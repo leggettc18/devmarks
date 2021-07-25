@@ -63,7 +63,7 @@ func (a *API) CreateBookmark(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if input.URL == "" {
-		respondWithError(w, http.StatusBadRequest, "url is required")
+		respondWithError(w, http.StatusUnprocessableEntity, "url is required")
 		return
 	}
 	if input.Name == "" {
