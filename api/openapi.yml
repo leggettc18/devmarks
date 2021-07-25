@@ -419,11 +419,12 @@ components:
           type: string
         owner:
           nullable: true
-          description: if embed=owner is provided
+          description: if embed=owner is specified
           $ref: "#/components/schemas/User"
         folders:
           type: array
           nullable: true
+          description: if embed=folders is specified
           items:
             $ref: "#/components/schemas/Folder"
       example:
@@ -447,13 +448,16 @@ components:
         name:
           type: string
         parent:
+          description: if embed=parent is specified
           nullable: true
           $ref: "#/components/schemas/Folder"
         owner:
+          description: if embed=owner is specified
           nullable: true
           $ref:  "#/components/schemas/User"
         bookmarks:
           type: array
+          description: if embed=bookmarks is specified
           nullable: true
           items:
             $ref:  "#/components/schemas/Bookmark"
