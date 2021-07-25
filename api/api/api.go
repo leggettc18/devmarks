@@ -74,9 +74,12 @@ func (a *API) Init(r *mux.Router) {
 	a.setupGoGuardian()
 	logger := log.NewLogger(a.Config.ProxyCount)
 	r.Use(logger.LoggerMiddleware)
-	authSvc := myAuth.NewAuth(&[]string{"/users", "/auth/token"}, *a.App, &logger)
+	authSvc := myAuth.NewAuth(&[]string{"/users", "/auth/token", "/static/openapi.yml", "/static/redoc-static.html"}, *a.App, &logger)
 	r.Use(authSvc.AuthMiddleware)
 	r.Use(apiMiddleware)
+
+	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("."))))
+
 	r.HandleFunc("/auth/token", a.createToken).Methods("POST")
 
 	// user methods

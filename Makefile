@@ -63,6 +63,10 @@ test-client:
 	@echo [ running web client tests... ]
 	docker-compose run web yarn test
 
+api-docs-build:
+	@echo [ building api documentation ]
+	@docker run -ti --rm -v $(shell pwd):/tmp broothie/redoc-cli bundle /tmp/api/openapi.yml -o /tmp/api/redoc-static.html
+
 debug-api:
 	@echo [ debugging api... ]
 	docker-compose up traefik debug-api db redis
