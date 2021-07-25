@@ -125,6 +125,10 @@ paths:
                 type: array
                 items:
                   $ref:  "#/components/schemas/Bookmark"
+        '401':
+          $ref: "#/components/responses/UnauthorizedError"
+        '500':
+          $ref:  "#/components/responses/InternalServerError"
     post:
       summary: 'Add a new bookmark owned by the current user'
       operationId: createBookmark
@@ -160,6 +164,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Bookmark"
+        '401':
+          $ref: "#/components/responses/UnauthorizedError"
+        '422':
+          $ref: "#/components/responses/UnprocessableEntity"
+        '500':
+          $ref:  "#/components/responses/InternalServerError"
   /bookmarks/{id}:
     get:
       summary: 'Get a specific bookmark by its ID, if the current user (specified by the bearer token) has permission to view it.'
@@ -177,6 +187,14 @@ paths:
             application/json:
               schema:
                 $ref:  "#/components/schemas/Bookmark"
+        '401':
+          $ref:  "#/components/responses/UnauthorizedError"
+        '403':
+          $ref:  "#/components/responses/Forbidden"
+        '404':
+          $ref:  "#/components/responses/NotFound"
+        '500':
+          $ref:  "#/components/responses/InternalServerError"
     patch:
       summary: 'Update a specific bookmark by its ID, if the current user (specified by the bearer token) has permission to edit it.'
       operationId: updateBookmark
@@ -216,6 +234,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Bookmark"
+        '401':
+          $ref:  "#/components/responses/UnauthorizedError"
+        '403':
+          $ref:  "#/components/responses/Forbidden"
+        '500':
+          $ref:  "#/components/responses/InternalServerError"
     delete:
       summary: 'Deletes the specified bookmark if the current user (specified by the bearer token) has permission to delete it.'
       operationId: deleteBookmark
@@ -238,6 +262,10 @@ paths:
       responses:
         '204':
           description: Successfully Deleted
+        '401':
+          $ref: "#/components/responses/UnauthorizedError"
+        '500':
+          $ref: "#/components/responses/InternalServerError"
   /folders:
     get:
       summary: 'Get a list of all folders the current user can access.'
@@ -462,3 +490,9 @@ components:
       description: Access token is missing or invalid
     InternalServerError:
       description: A server-side error occurred
+    UnprocessableEntity:
+      description: The server understands the content type of the request entity, and the syntax of the request entity is correct, but it was unable to process the contained instructions
+    NotFound:
+      description: The requested resource does not exist
+    Forbidden:
+      description: This operation is not permitted for the given user.
