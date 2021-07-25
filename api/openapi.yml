@@ -462,5 +462,3 @@ components:
       description: Access token is missing or invalid
     InternalServerError:
       description: A server-side error occurred
-security:
-  - bearerAuth: [] 
