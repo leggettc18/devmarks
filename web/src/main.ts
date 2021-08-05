@@ -11,6 +11,8 @@ import {
   InMemoryCache,
 } from "@apollo/client/core";
 import "@/assets/tailwind.css";
+import { DefaultDevmarksClient, DevmarksClient } from "./api/api";
+import { Configuration } from "./api/client";
 
 const graphqlUri: string = process.env.VUE_APP_GRAPHQL_URI
   ? process.env.VUE_APP_GRAPHQL_URI
@@ -39,7 +41,20 @@ const apolloClient = new ApolloClient({
   cache,
 });
 
+const config = new Configuration({
+  accessToken: () => {
+    const token = localStorage.getItem("user-token");
+    if (token === null) {
+      return "";
+    }
+    return token;
+  }
+});
+
+const devmarksClient = new DevmarksClient(config)
+
 createApp(App)
+  .provide(DefaultDevmarksClient, devmarksClient)
   .provide(DefaultApolloClient, apolloClient)
   .provide(stateSymbol, createState())
   .use(router)

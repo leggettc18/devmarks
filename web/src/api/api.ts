@@ -1,4 +1,5 @@
 import { UserApi, BookmarkApi, FolderApi, Configuration } from "@/api/client";
+import { inject, provide, reactive } from "vue";
 
 export const DefaultDevmarksClient: unique symbol = Symbol(
   "DefaultDevmarksClient"
@@ -15,3 +16,5 @@ export class DevmarksClient {
     this.folderApi = new FolderApi(configuration);
   }
 }
+
+export const useApi = () => inject(DefaultDevmarksClient) as DevmarksClient;
