@@ -7,7 +7,7 @@ export const DefaultDevmarksClient: unique symbol = Symbol(
 
 export class DevmarksClient {
   public userApi: UserApi;
-  private bookmarkApi: BookmarkApi;
+  public bookmarkApi: BookmarkApi;
   private folderApi: FolderApi;
 
   constructor(configuration: Configuration = new Configuration()) {
