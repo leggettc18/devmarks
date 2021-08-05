@@ -6,7 +6,7 @@ export const DefaultDevmarksClient: unique symbol = Symbol(
 );
 
 export class DevmarksClient {
-  private userApi: UserApi;
+  public userApi: UserApi;
   private bookmarkApi: BookmarkApi;
   private folderApi: FolderApi;
 
@@ -17,4 +17,9 @@ export class DevmarksClient {
   }
 }
 
+export const createApi = (config: Configuration) => {
+  return reactive(new DevmarksClient(config));
+}
+
 export const useApi = () => inject(DefaultDevmarksClient) as DevmarksClient;
+export const provideApi = (config: Configuration) => provide(DefaultDevmarksClient, createApi(config));

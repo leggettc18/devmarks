@@ -30,7 +30,7 @@
       </div>
     </template>
     <div class="flex justify-center space-x-4">
-      <dm-button type="primary" :dark="state.isDarkmode()" rounded @click.prevent="login()">Login</dm-button>
+      <dm-button type="primary" :dark="state.isDarkmode()" rounded @click.prevent="handleLogin()">Login</dm-button>
       <dm-button type="danger" :dark="state.isDarkmode()" rounded router-link link-to="/">Cancel</dm-button>
     </div>
     <div v-if="loginErrors && !loading">
@@ -48,6 +48,7 @@ import router from "@/router";
 import { GraphQLError } from "graphql";
 import DmButton from "@/components/Button.vue";
 import DmInput from "@/components/Input.vue";
+import { useApi } from "@/api/api";
 
 export default defineComponent({
   name: "Login",
@@ -70,6 +71,15 @@ export default defineComponent({
       email: null | GraphQLError[];
       password: null | GraphQLError[];
     });
+
+    const api = useApi();
+
+    const handleLogin = async () => {
+      const response = await api.userApi.login(credentials.value);
+      state.storeToken({ token: response.data.token})
+      state.storeUser(await (await api.userApi.getUser()).data);
+      router.push("/home");
+    };
 
     const {
       mutate: login,
@@ -104,6 +114,7 @@ export default defineComponent({
       loginErrors,
       loading,
       credentials,
+      handleLogin,
     };
   },
   data() {

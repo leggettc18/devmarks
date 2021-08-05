@@ -11,7 +11,7 @@ import {
   InMemoryCache,
 } from "@apollo/client/core";
 import "@/assets/tailwind.css";
-import { DefaultDevmarksClient, DevmarksClient } from "./api/api";
+import { createApi, DefaultDevmarksClient, DevmarksClient } from "./api/api";
 import { Configuration } from "./api/client";
 
 const graphqlUri: string = process.env.VUE_APP_GRAPHQL_URI
@@ -51,7 +51,7 @@ const config = new Configuration({
   }
 });
 
-const devmarksClient = new DevmarksClient(config)
+const devmarksClient = createApi(config);
 
 createApp(App)
   .provide(DefaultDevmarksClient, devmarksClient)
