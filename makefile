@@ -69,7 +69,7 @@ api-docs-build:
 
 api-client-build:
 	@echo [ building typescript-fetch api client ]
-	@docker run --rm -u $(shell id -u):$(shell id -g) -v "$(shell pwd):/local" openapitools/openapi-generator-cli generate -i /local/api/openapi.yml -g typescript-fetch -o /local/web/src/api/client --additional-properties=typescriptThreePlus=true
+	@docker run --rm -u $(shell id -u):$(shell id -g) -v "$(shell pwd):/local" openapitools/openapi-generator-cli generate -i /local/api/openapi.yml -g typescript-axios -o /local/web/src/api/client --additional-properties=typescriptThreePlus=true
 
 debug-api:
 	@echo [ debugging api... ]
