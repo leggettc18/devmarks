@@ -13,10 +13,5 @@ export class DevmarksClient {
     this.userApi = new UserApi(configuration);
     this.bookmarkApi = new BookmarkApi(configuration);
     this.folderApi = new FolderApi(configuration);
-
-    this.userApi.login({
-      email: "test@example.com",
-      password: "password",
-    });
   }
 }
