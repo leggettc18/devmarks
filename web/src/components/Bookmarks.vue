@@ -55,6 +55,7 @@ import { Bookmark } from "@/api/client";
 import { defineComponent, Ref, ref } from "vue";
 import Card from "@/components/Card.vue";
 import DmButton from "@/components/Button.vue";
+import router from "@/router";
 
 export default defineComponent({
   name: "Bookmarks",
@@ -65,8 +66,15 @@ export default defineComponent({
   async setup() {
     const state = useState();
     const bookmarks: Ref<Bookmark[] | null> = ref(null);
-    const response = await useApi().bookmarkApi.getBookmarks();
-    bookmarks.value = response.data;
+    try {
+      const response = await useApi().bookmarkApi.getBookmarks();
+      bookmarks.value = response.data;
+    } catch (error) {
+      if (error.response?.status === 403) {
+        state.logOut();
+        router.push('/login');
+      }
+    }
 
     return {
       state,
