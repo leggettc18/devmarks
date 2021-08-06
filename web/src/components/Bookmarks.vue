@@ -56,6 +56,7 @@ import { defineComponent, Ref, ref } from "vue";
 import Card from "@/components/Card.vue";
 import DmButton from "@/components/Button.vue";
 import router from "@/router";
+import { AxiosError } from "axios";
 
 export default defineComponent({
   name: "Bookmarks",
@@ -66,13 +67,20 @@ export default defineComponent({
   async setup() {
     const state = useState();
     const bookmarks: Ref<Bookmark[] | null> = ref(null);
+
+    const isAxiosError = (error: AxiosError): error is AxiosError => {
+      return (error as AxiosError).response !== undefined;
+    }
+
     try {
       const response = await useApi().bookmarkApi.getBookmarks();
       bookmarks.value = response.data;
     } catch (error) {
-      if (error.response?.status === 403) {
-        state.logOut();
-        router.push('/login');
+      if (isAxiosError(error)) {
+        if (error.response?.status === 403) {
+          state.logOut();
+          router.push('/login');
+        }
       }
     }
 
