@@ -69,8 +69,8 @@ services:
         ports:
             - 3000:3000
         volumes:
-            - ./web:/client/app
-            - /client/app/node_modules
+            - ./web:/app
+            - /app/node_modules
         networks:
             - traefik-public
         labels:

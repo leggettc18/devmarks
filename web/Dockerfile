@@ -1,11 +1,11 @@
 FROM node:16.3.0-alpine as base
-WORKDIR /client
+WORKDIR /app
 COPY package*.json .
-COPY . .
+COPY yarn.lock .
 RUN yarn install --frozen-lockfile && yarn cache clean --force
 FROM base as dev
 ENV NODE_ENV=development
-ENV PATH /client/node_modules/.bin:$PATH
+ENV PATH /app/node_modules/.bin:$PATH
 EXPOSE 3000
 CMD ["yarn", "serve"]
 FROM dev as test
