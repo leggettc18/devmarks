@@ -12,7 +12,7 @@ export interface BookmarkCreate {
 }
 
 export interface BookmarkUpdate {
-  id: string;
+  id: number;
   name: string;
   url: string;
   color?: string;
