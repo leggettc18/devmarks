@@ -177,7 +177,7 @@ export default defineComponent({
     const submitNewBookmark = async () => {
       const [response, error] = await asyncHandler(bookmarksApi.createBookmark(newBookmark.value));
       if (response?.data) bookmarks.value?.push(response.data)
-      console.log(error);
+      if (error) console.error(error);
     };
     
     const updatedBookmark = ref({
