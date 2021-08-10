@@ -99,8 +99,6 @@ import {
   DialogTitle
 } from "@headlessui/vue"
 import router from "@/router";
-import { AxiosError, AxiosResponse } from "axios";
-import { asyncHandler } from "@/helpers";
 import { BookmarkCreate, BookmarkUpdate } from "@/models/bookmark";
 
 export default defineComponent({
@@ -123,25 +121,19 @@ export default defineComponent({
     const editing = ref(false);
     const token = state.getToken();
     const dialogVisible: Ref<boolean> = ref(false);
-    const bookmarksApi = useApi().bookmarkApi;
+    const api = useApi();
     if (!token) {
       return {};
     }
 
-    const isAxiosError = (error: unknown): error is AxiosError => {
-      return (error as AxiosError).response !== undefined;
-    }
-
-    const [response, error] = await asyncHandler<AxiosResponse<Bookmark[]>>(bookmarksApi.getBookmarks());
-    if (error !== null) {
-      if (isAxiosError(error)) {
-        if (error.response?.status === 403) {
+    const response = await api.getBookmarks();
+    if (!response.success) {
+        if (response.statusCode === 403) {
           state.logOut();
           router.push('/login');
         }
-      }
     } else {
-      if (response) bookmarks.value = response.data;
+      if (response.data) bookmarks.value = response.data;
     }
     const openDialog = () => {
       dialogVisible.value = true;
@@ -175,9 +167,12 @@ export default defineComponent({
     };
 
     const submitNewBookmark = async () => {
-      const [response, error] = await asyncHandler(bookmarksApi.createBookmark(newBookmark.value));
-      if (response?.data) bookmarks.value?.push(response.data)
-      if (error) console.error(error);
+      const response = await api.newBookmark(newBookmark.value);
+      if (response.success && response.data) {
+        bookmarks.value?.push(response.data)
+      } else {
+        console.error(response.message);
+      }
     };
     
     const updatedBookmark = ref({
