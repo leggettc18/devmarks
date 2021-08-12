@@ -188,9 +188,15 @@ export default defineComponent({
       editing.value = true;
     };
 
-    const updateBookmark = () => {
-      console.log("update");
-      //TODO: Implement
+    const updateBookmark = async () => {
+      const response = await api.updateBookmark(updatedBookmark.value);
+      if (response.success && response.data) {
+        const index = bookmarks.value?.findIndex(bookmark => bookmark.id === response.data?.id);
+        console.log(index);
+        if (index !== undefined) bookmarks.value?.splice(index, 1, response.data);
+      } else {
+        console.error(response.message);
+      }
     }
 
     const handleSubmit = () => {

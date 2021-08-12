@@ -1,5 +1,5 @@
 import { UserApi, BookmarkApi, FolderApi, Configuration, Bookmark } from "@/api/client";
-import { BookmarkCreate } from "@/models/bookmark";
+import { BookmarkCreate, BookmarkUpdate } from "@/models/bookmark";
 import { AxiosError, AxiosResponse } from "axios";
 import { inject, provide, reactive } from "vue";
 
@@ -66,6 +66,12 @@ export class DevmarksClient {
   public async newBookmark(bookmark: BookmarkCreate) {
     return await handleRequest(
       this.bookmarkApi.createBookmark(bookmark)
+    )
+  }
+
+  public async updateBookmark(bookmark: BookmarkUpdate) {
+    return await handleRequest(
+      this.bookmarkApi.updateBookmark(bookmark.id, bookmark)
     )
   }
 }
