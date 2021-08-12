@@ -124,7 +124,7 @@ type UpdateBookmarkInput struct {
 func (a *API) UpdateBookmarkByID(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	user := auth.GetUser(ctx)
-	if user != nil {
+	if user == nil {
 		respondWithError(w, http.StatusUnauthorized, "no user signed in")
 		return
 	}
