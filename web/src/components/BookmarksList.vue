@@ -117,7 +117,7 @@ export default defineComponent({
   emits: ["edit", "delete"],
   async setup() {
     const state = useState();
-    const bookmarks: Ref<Bookmark[] | null> = ref(null);
+    const bookmarks: Ref<Bookmark[]> = ref([]);
     const editing = ref(false);
     const token = state.getToken();
     const dialogVisible: Ref<boolean> = ref(false);
@@ -191,9 +191,9 @@ export default defineComponent({
     const updateBookmark = async () => {
       const response = await api.updateBookmark(updatedBookmark.value);
       if (response.success && response.data) {
-        const index = bookmarks.value?.findIndex(bookmark => bookmark.id === response.data?.id);
+        const index = bookmarks.value.findIndex(bookmark => bookmark.id === response.data?.id);
         console.log(index);
-        if (index !== undefined) bookmarks.value?.splice(index, 1, response.data);
+        if (index !== undefined) bookmarks.value.splice(index, 1, response.data);
       } else {
         console.error(response.message);
       }
@@ -211,11 +211,14 @@ export default defineComponent({
       dialogVisible.value = false;
     };
 
-    const deleteId = ref<number | null>(null);
+    const deleteId = ref<number>(0);
 
-    const deleteBookmark = () => {
-      console.log("delete");
-      //TODO: Implement
+    const deleteBookmark = async () => {
+      const response = await api.deleteBookmark(deleteId.value);
+      if (response.success) {
+        const index = bookmarks.value.findIndex(bookmark => bookmark.id === deleteId.value)
+        bookmarks.value.splice(index, 1);
+      }
     }
 
     const handleDelete = (bookmark: Bookmark) => {

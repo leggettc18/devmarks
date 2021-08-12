@@ -74,6 +74,12 @@ export class DevmarksClient {
       this.bookmarkApi.updateBookmark(bookmark.id, bookmark)
     )
   }
+
+  public async deleteBookmark(id: number) {
+    return await handleRequest(
+      this.bookmarkApi.deleteBookmark(id)
+    )
+  }
 }
 
 export const createApi = (config: Configuration) => {

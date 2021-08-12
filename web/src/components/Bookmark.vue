@@ -17,7 +17,7 @@
           />
         </svg>
       </dm-button>
-      <dm-button type="danger" rounded :dark="state.isDarkmode()" @click="handleDelete">
+      <dm-button type="danger" rounded :dark="state.isDarkmode()" @click="handleDelete(bookmark)">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           class="h-6 w-6"
@@ -71,8 +71,8 @@ export default defineComponent({
     };
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const handleDelete = (event: any) => {
-      emit("delete", event.target.value);
+    const handleDelete = (bookmark: Bookmark) => {
+      emit("delete", bookmark);
     };
 
     return {
