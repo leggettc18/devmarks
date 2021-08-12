@@ -2,7 +2,7 @@
   <div>
     <h1 class="text-2xl text-center">Register</h1>
     <dm-input
-      v-model="form.email"
+      v-model="credentials.email"
       type="email"
       label="E-Mail"
       name="email"
@@ -16,7 +16,7 @@
       </div>
     </template>
     <dm-input
-      v-model="form.password"
+      v-model="credentials.password"
       type="password"
       label="Password"
       name="password"
@@ -34,8 +34,8 @@
         type="primary"
         :dark="state.isDarkmode()"
         rounded
-        @click.prevent="register(form)"
-      >Login</dm-button>
+        @click.prevent="handleRegister"
+      >Register</dm-button>
       <dm-button type="danger" :dark="state.isDarkmode()" rounded router-link link-to="/">Cancel</dm-button>
     </div>
   </div>
@@ -45,11 +45,11 @@
 import { defineComponent, ref } from "vue";
 import { useState } from "../store/store";
 import { Credentials } from "@/models/auth";
-import { useRegisterMutation } from "@/generated/graphql";
 import router from "@/router";
 import DmButton from "@/components/Button.vue";
 import DmInput from "@/components/Input.vue";
 import { GraphQLError } from "graphql";
+import { useApi } from "@/api/api";
 
 export default defineComponent({
   name: "Register",
@@ -59,6 +59,7 @@ export default defineComponent({
   },
   setup() {
     const state = useState();
+    const api = useApi();
 
     const credentials = ref({
       email: "",
@@ -73,38 +74,17 @@ export default defineComponent({
       password: null | GraphQLError[];
     });
 
-    const {
-      mutate: register,
-      onDone,
-      error: registerError,
-      loading,
-    } = useRegisterMutation(() => ({
-      variables: credentials.value,
-      errorPolicy: "all",
-    }));
+    const handleRegister = async () => {
+      await api.userApi.register(credentials.value);
+      router.push("/login");
+    };
 
-    onDone((register) => {
-      if (register.data?.register?.token && register.data.register.user) {
-        state.storeToken({ token: register.data?.register.token });
-        state.storeUser(register.data?.register?.user);
-        router.push("/home");
-      }
-      if (register.errors) {
-        registerErrors.value.email = register.errors.filter((e) => {
-          return e.extensions?.field === "email";
-        });
-        registerErrors.value.password = register.errors.filter((e) => {
-          return e.extensions?.field === "password";
-        });
-      }
-    });
+    
     return {
       state,
-      register,
       credentials,
-      registerError,
       registerErrors,
-      loading,
+      handleRegister
     };
   },
   data() {
