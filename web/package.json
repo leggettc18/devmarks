@@ -5,31 +5,20 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint",
-    "generate": "graphql-codegen --config codegen.yml"
+    "lint": "vue-cli-service lint"
   },
   "dependencies": {
-    "@apollo/client": "^3.3.21",
     "@headlessui/vue": "^1.2.0",
-    "@vue/apollo-composable": "^4.0.0-alpha.12",
     "@vueuse/core": "^4.11.0",
     "autoprefixer": "^9",
     "core-js": "^3.6.5",
-    "graphql": "^15.5.0",
-    "graphql-tag": "^2.11.0",
     "postcss": "^7",
     "register-service-worker": "^1.7.1",
     "tailwindcss": "npm:@tailwindcss/postcss7-compat",
     "vue": "^3.1.4",
-    "vue-apollo": "^3.0.0-alpha.3",
     "vue-router": "^4.0.0-0"
   },
   "devDependencies": {
-    "@graphql-codegen/cli": "1.21.2",
-    "@graphql-codegen/introspection": "1.18.1",
-    "@graphql-codegen/typescript": "1.21.1",
-    "@graphql-codegen/typescript-operations": "^1.17.15",
-    "@graphql-codegen/typescript-vue-apollo": "^2.3.2",
     "@types/axios": "^0.14.0",
     "@typescript-eslint/eslint-plugin": "^2.33.0",
     "@typescript-eslint/parser": "^2.33.0",

@@ -33,7 +33,7 @@
       <dm-button type="primary" :dark="state.isDarkmode()" rounded @click.prevent="handleLogin()">Login</dm-button>
       <dm-button type="danger" :dark="state.isDarkmode()" rounded router-link link-to="/">Cancel</dm-button>
     </div>
-    <div v-if="loginErrors && !loading">
+    <div v-if="loginErrors">
       <div v-for="(e, i) of loginErrors.email" :key="i">{{e.extensions.message}}</div>
     </div>
   </div>
@@ -43,9 +43,7 @@
 import { defineComponent, ref } from "vue";
 import { useState } from "../store/store";
 import { Credentials } from "@/models/auth";
-import { useLoginMutation } from "@/generated/graphql";
 import router from "@/router";
-import { GraphQLError } from "graphql";
 import DmButton from "@/components/Button.vue";
 import DmInput from "@/components/Input.vue";
 import { useApi } from "@/api/api";
@@ -68,8 +66,8 @@ export default defineComponent({
       email: null,
       password: null,
     } as {
-      email: null | GraphQLError[];
-      password: null | GraphQLError[];
+      email: null;
+      password: null;
     });
 
     const api = useApi();
@@ -81,38 +79,9 @@ export default defineComponent({
       router.push("/home");
     };
 
-    const {
-      mutate: login,
-      onDone,
-      error: loginError,
-      loading,
-    } = useLoginMutation(() => ({
-      variables: credentials.value,
-      errorPolicy: "all",
-    }));
-
-    onDone((login) => {
-      if (login.data?.login?.token && login.data.login.user) {
-        state.storeToken({ token: login.data?.login.token });
-        state.storeUser(login.data?.login?.user);
-        router.push("/home");
-      }
-      if (login.errors) {
-        loginErrors.value.email = login.errors.filter((e) => {
-          return e.extensions?.field === "email";
-        });
-        loginErrors.value.password = login.errors.filter((e) => {
-          return e.extensions?.field === "password";
-        });
-      }
-    });
-
     return {
       state,
-      login,
-      loginError,
       loginErrors,
-      loading,
       credentials,
       handleLogin,
     };

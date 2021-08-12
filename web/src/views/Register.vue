@@ -48,7 +48,6 @@ import { Credentials } from "@/models/auth";
 import router from "@/router";
 import DmButton from "@/components/Button.vue";
 import DmInput from "@/components/Input.vue";
-import { GraphQLError } from "graphql";
 import { useApi } from "@/api/api";
 
 export default defineComponent({
@@ -70,8 +69,8 @@ export default defineComponent({
       email: null,
       password: null,
     } as {
-      email: null | GraphQLError[];
-      password: null | GraphQLError[];
+      email: null;
+      password: null;
     });
 
     const handleRegister = async () => {
