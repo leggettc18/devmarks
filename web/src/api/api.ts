@@ -45,7 +45,7 @@ const handleRequest: <T>(request: Promise<AxiosResponse<T>>) => Promise<Response
 
 export class DevmarksClient {
   public userApi: UserApi;
-  public bookmarkApi: BookmarkApi;
+  private bookmarkApi: BookmarkApi;
   private folderApi: FolderApi;
 
   constructor(configuration: Configuration = new Configuration()) {
@@ -57,28 +57,34 @@ export class DevmarksClient {
   /**
    * getBookmarks
    */
-  public async getBookmarks(): Promise<Response<Bookmark[]>> {
+  public async getBookmarks(embed?: string | undefined): Promise<Response<Bookmark[]>> {
     return await handleRequest(
-      this.bookmarkApi.getBookmarks()
+      this.bookmarkApi.getBookmarks(embed)
     );
   }
 
   public async newBookmark(bookmark: BookmarkCreate) {
     return await handleRequest(
       this.bookmarkApi.createBookmark(bookmark)
-    )
+    );
   }
 
   public async updateBookmark(bookmark: BookmarkUpdate) {
     return await handleRequest(
       this.bookmarkApi.updateBookmark(bookmark.id, bookmark)
-    )
+    );
   }
 
   public async deleteBookmark(id: number) {
     return await handleRequest(
       this.bookmarkApi.deleteBookmark(id)
-    )
+    );
+  }
+
+  public async getFolders(embed: string | undefined) {
+    return await handleRequest(
+      this.folderApi.getFolders(embed)
+    );
   }
 }
 
