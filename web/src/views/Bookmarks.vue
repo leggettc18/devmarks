@@ -3,20 +3,42 @@
     <suspense>
       <template #fallback>Loading...</template>
       <template #default>
-        <bookmarks-list />
+        <div>
+          <div v-show="view === ViewType.Folders">
+            <folder-list />
+          </div>
+          <div v-show="view === ViewType.Bookmarks">
+            <bookmarks-list />
+          </div>
+        </div>
       </template>
     </suspense>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, ref } from "vue";
 import BookmarksList from "@/components/BookmarksList.vue";
+import FolderList from "@/components/FolderList.vue";
 
 export default defineComponent({
   name: "Bookmarks",
   components: {
     BookmarksList,
+    FolderList,
+  },
+  setup() {
+    enum ViewType {
+      Folders = 1,
+      Bookmarks,
+      Tags,
+    }
+    const view = ref(ViewType.Folders);
+
+    return {
+      view,
+      ViewType,
+    };
   },
 });
 </script>
