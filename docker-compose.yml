@@ -42,6 +42,8 @@ services:
       CGO_ENABLED: 0
     volumes:
       - ./api:/api
+    ports:
+      - 4000:4000
     networks:
       - postgres-net
       - traefik-public

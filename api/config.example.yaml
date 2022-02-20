@@ -1,3 +1,6 @@
 SecretKey: 123
-DatabaseURI: host=localhost port=5432 user=devmarks dbname=devmarks password=devmarks
+DatabaseURI: host=db port=5432 user=devmarks dbname=devmarks password=devmarks sslmode=disable
 Cors: true
+Port: 4000
+AllowedHosts:
+  - http://localhost:3000
