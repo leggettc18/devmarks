@@ -12,7 +12,7 @@ service ?= api
 
 all: traefik-network postgres-network postgres-devmarks-volume
 	@echo [ starting client '&' api... ]
-	docker-compose up --build traefik api web db
+	docker-compose up --build traefik api client db
 
 traefik-network:
 ifeq (,$(findstring traefik-public,$(NETWORKS)))
@@ -61,7 +61,7 @@ test-api:
 
 test-client:
 	@echo [ running web client tests... ]
-	docker-compose run web yarn test
+	docker-compose run client yarn test
 
 api-docs-build:
 	@echo [ building api documentation ]
