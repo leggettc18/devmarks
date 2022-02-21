@@ -33,7 +33,7 @@ export default defineComponent({
       Bookmarks,
       Tags,
     }
-    const view = ref(ViewType.Folders);
+    const view = ref(ViewType.Bookmarks);
 
     return {
       view,

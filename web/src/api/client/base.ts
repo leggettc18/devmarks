@@ -18,7 +18,7 @@ import { Configuration } from "./configuration";
 // @ts-ignore
 import globalAxios, { AxiosPromise, AxiosInstance } from 'axios';
 
-export const BASE_PATH = `${process.env.VUE_APP_API_PROTO}://${process.env.VUE_APP_API_URL}`.replace(/\/+$/, "");
+export const BASE_PATH = `${import.meta.env.VITE_API_PROTO}://${import.meta.env.VITE_API_URL}`.replace(/\/+$/, "");
 
 /**
  *

@@ -7,7 +7,7 @@ FROM base as dev
 ENV NODE_ENV=development
 ENV PATH /app/node_modules/.bin:$PATH
 EXPOSE 3000
-CMD ["yarn", "serve"]
+CMD ["yarn", "dev"]
 FROM dev as test
 COPY . .
 RUN yarn audit
