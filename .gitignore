@@ -11,3 +11,4 @@ api/coverage.*
 .env.local
 yarn-error.log
 api/redoc-static.html
+api/redoc.html

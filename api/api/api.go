@@ -54,7 +54,7 @@ func apiMiddleware(next http.Handler) http.Handler {
 		ctx := r.Context()
 		ctx = context.WithValue(ctx, helpers.EmbedsKey, embeds)
 		next.ServeHTTP(w, r.WithContext(ctx))
-		
+
 	})
 }
 
@@ -74,7 +74,7 @@ func (a *API) Init(r *mux.Router) {
 	a.setupGoGuardian()
 	logger := log.NewLogger(a.Config.ProxyCount)
 	r.Use(logger.LoggerMiddleware)
-	authSvc := myAuth.NewAuth(&[]string{"/users", "/auth/token", "/static/openapi.yml", "/static/redoc-static.html"}, *a.App, &logger)
+	authSvc := myAuth.NewAuth(&[]string{"/users", "/auth/token", "/static/openapi.yml", "/static/redoc.html"}, *a.App, &logger)
 	r.Use(authSvc.AuthMiddleware)
 	r.Use(apiMiddleware)
 

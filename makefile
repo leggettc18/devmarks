@@ -65,7 +65,7 @@ test-client:
 
 api-docs-build:
 	@echo [ building api documentation ]
-	@docker run -ti --rm -v $(shell pwd):/tmp broothie/redoc-cli bundle /tmp/api/openapi.yml -o /tmp/api/redoc-static.html
+	@docker run -ti --rm -v $(shell pwd):/tmp broothie/redoc-cli bundle /tmp/api/openapi.yml -o /tmp/api/redoc.html
 
 api-client-build:
 	@echo [ building typescript-fetch api client ]
